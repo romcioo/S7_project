@@ -21,7 +21,7 @@ extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
 geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
 std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position);
 geometry_msgs::Quaternion head(double initial[]);
-double * multiply(double f[][3], int size_f[2], double s[][3], int size_s[2]);
+void multiply(double trans[3][3], double point[3], double result[3]);
 
 
 int main(int argc, char **argv) {
@@ -136,16 +136,12 @@ geometry_msgs::Quaternion head(double initial[]) {
   return heading;
 }
 
-double * multiply(double f[][3], int size_f[2], double s[][3], int size_s[2]) {
-  double result[size_f[0]][size_s[1]];
-  for (int i=0; i<size_f[0]; i++) {
-    for (int j=0; i<size_s[1]; j++) {
-      double sum = 0;
-      for (int k=0; i<size_s[0]; k++) {
-        sum += f[i][k]*s[k][j];
-      }
-      result[i][j] = sum;
+void multiply(double trans[3][3], double point[3], double result[3]) {
+  for (int i=0; i<3; i++) {
+    double sum = 0;
+    for (int j=0; j<3; j++) {
+      sum += trans[i][j]*point[j];
     }
+    result[i] = sum;
   }
-  return result;
 }
