@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <random>
+#include <math.h>
 //#include <time>
 // #include "webots/Robot.h"
 
@@ -20,6 +21,7 @@ extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
 geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
 std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position);
 geometry_msgs::Quaternion head(double initial[]);
+double[][] multiply(double f[][], double s[][]]);
 
 
 int main(int argc, char **argv) {
@@ -121,7 +123,19 @@ geometry_msgs::Quaternion head(double initial[]) {
   double yaw = imu.y + initial[1];
   double pitch = imu.z + initial[2];
 
+  double rotation_matrix[3][3] = {{cos(yaw)*cos(pitch),
+    sin(roll)*sin(yaw)*cos(pitch)-cos(roll)*sin(pitch),
+    cos(roll)*sin(yaw)*cos(pitch)+sin(roll)*sin(pitch)},
+    {cos(yaw)*cos(pitch),
+    sin(roll)*sin(yaw)*sin(pitch)+cos(roll)*cos(pitch),
+    cos(roll)*sin(yaw)*sin(pitch)-sin(roll)*cos(pitch)},
+    {-sin(yaw), sin(roll)*cos(yaw), sin(roll)*cos(yaw)}};
+
   geometry_msgs::Quaternion heading = geometry_msgs::Quaternion();
 
   return heading;
+}
+
+double[][] multiply(double f[][], double s[][]]) {
+  
 }
