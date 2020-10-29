@@ -12,11 +12,14 @@
 /*Declare*/
 void objectiveCallback(const geometry_msgs::Vector3::ConstPtr& msg);
 void globalCallback(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
+void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg);
+
 geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
 std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position);
 
 extern geometry_msgs::Vector3Stamped global_position = geometry_msgs::Vector3Stamped();
 extern geometry_msgs::Vector3 objective = geometry_msgs::Vector3();
+extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
 
 /**
  * This tutorial demonstrates simple sending of messages over the ROS system.
@@ -31,8 +34,9 @@ int main(int argc, char **argv) {
 
   ros::Subscriber objective_sub = n.subscribe("goal", 1000, objectiveCallback);
   ros::Subscriber global_position_sub = n.subscribe("robot_pose", 1000, globalCallback);
+  ros::Subscriber imu_sub = n.subscribe("imuValues", 1000, imuCallback);
 
-  ros::Rate loop_rate(10);
+  ros::Rate loop_rate(1);
 
   // Initialize
   /*global_position.vector.x = double(0);
@@ -104,4 +108,8 @@ std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3
   std_msgs::Bool reached = std_msgs::Bool();
   reached.data = error > std::sqrt(pow(x,2) + pow(y,2) + pow(z,2));
   return reached;
+}
+
+void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg) {
+  imu = *msg;
 }
