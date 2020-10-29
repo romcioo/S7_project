@@ -11,19 +11,17 @@
 
 /*Declare*/
 void objectiveCallback(const geometry_msgs::Vector3::ConstPtr& msg);
+extern geometry_msgs::Vector3 objective = geometry_msgs::Vector3();
 void globalCallback(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
+extern geometry_msgs::Vector3Stamped global_position = geometry_msgs::Vector3Stamped();
 void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg);
+extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
 
 geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
 std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position);
+geometry_msgs::Quaternion head(double initial[]);
 
-extern geometry_msgs::Vector3Stamped global_position = geometry_msgs::Vector3Stamped();
-extern geometry_msgs::Vector3 objective = geometry_msgs::Vector3();
-extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
 
-/**
- * This tutorial demonstrates simple sending of messages over the ROS system.
- */
 int main(int argc, char **argv) {
   ros::init(argc, argv, "planner");
   ros::NodeHandle n;
@@ -46,6 +44,8 @@ int main(int argc, char **argv) {
   geometry_msgs::Quaternion heading_msg;
   geometry_msgs::Vector3Stamped position;
   std_msgs::Bool reached;
+  geometry_msgs::Quaternion heading;
+  double initial_rotation[3] = {0,0,0};
 
   while (ros::ok()) {
     position = addNoise(global_position);
@@ -53,6 +53,8 @@ int main(int argc, char **argv) {
 
     reached = reachedQ(objective, position.vector);
     reached_pub.publish(reached);
+
+    heading = head(initial_rotation);
 
     ros::spinOnce();
 
@@ -85,6 +87,10 @@ void globalCallback(const geometry_msgs::Vector3Stamped::ConstPtr& msg) {
   global_position = *msg;
 }
 
+void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg) {
+  imu = *msg;
+}
+
 geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point) {
   // double stddev;
   // const double mean = 0.0;
@@ -110,6 +116,12 @@ std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3
   return reached;
 }
 
-void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg) {
-  imu = *msg;
+geometry_msgs::Quaternion head(double initial[]) {
+  double roll = imu.x + initial[0];
+  double yaw = imu.y + initial[1];
+  double pitch = imu.z + initial[2];
+
+  geometry_msgs::Quaternion heading = geometry_msgs::Quaternion();
+
+  return heading;
 }
