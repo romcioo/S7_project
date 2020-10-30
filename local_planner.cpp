@@ -20,17 +20,20 @@ extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
 
 geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
 std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position);
-geometry_msgs::Quaternion head(double initial[]);
+void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msgs::Vector3 &heading, ros::Publisher diff_pub, ros::Publisher diff_rot_pub);
 void multiply(double trans[3][3], double point[3], double result[3]);
+void substract(geometry_msgs::Vector3 vec1, geometry_msgs::Vector3 vec2, double result[3]);
 
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "planner");
   ros::NodeHandle n;
-  ros::Publisher heading_pub = n.advertise<geometry_msgs::Quaternion>("heading", 1000);
+  ros::Publisher heading_pub = n.advertise<geometry_msgs::Vector3>("heading", 1000);
   ros::Publisher visited_pub = n.advertise<geometry_msgs::Vector3Stamped>("path", 1000);
   ros::Publisher reached_pub = n.advertise<std_msgs::Bool>("reachPoint", 1000);
   // ros::Publisher position_shifted_pub = n.advertise<geometry_msgs::Vector3>("robot_pose_shifted", 1000);
+  ros::Publisher diff_pub = n.advertise<geometry_msgs::Vector3>("diff", 100);
+  ros::Publisher diff_rot_pub = n.advertise<geometry_msgs::Vector3>("diff_rot", 100);
 
   ros::Subscriber objective_sub = n.subscribe("goal", 1000, objectiveCallback);
   ros::Subscriber global_position_sub = n.subscribe("robot_pose", 1000, globalCallback);
@@ -39,14 +42,14 @@ int main(int argc, char **argv) {
   ros::Rate loop_rate(1);
 
   // Initialize
-  /*global_position.vector.x = double(0);
-  global_position.vector.y = double(0);
-  global_position.vector.z = double(0);*/
+  // global_position.vector.x = double(0);
+  // global_position.vector.y = double(0);
+  // global_position.vector.z = double(0);
 
-  geometry_msgs::Quaternion heading_msg;
+  // geometry_msgs::Quaternion heading_msg;
   geometry_msgs::Vector3Stamped position;
   std_msgs::Bool reached;
-  geometry_msgs::Quaternion *heading;
+  geometry_msgs::Vector3 heading = geometry_msgs::Vector3();
   double initial_rotation[3] = {0,0,0};
 
   while (ros::ok()) {
@@ -56,7 +59,8 @@ int main(int argc, char **argv) {
     reached = reachedQ(objective, position.vector);
     reached_pub.publish(reached);
 
-    *heading = head(initial_rotation);
+    head(initial_rotation, position, heading, diff_pub, diff_rot_pub);
+    heading_pub.publish(heading);
 
     ros::spinOnce();
 
@@ -118,22 +122,44 @@ std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3
   return reached;
 }
 
-geometry_msgs::Quaternion head(double initial[]) {
+void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msgs::Vector3 &heading, ros::Publisher diff_pub, ros::Publisher diff_rot_pub) {
+  double diff[3];
+  double diff_rot[3];
+  geometry_msgs::Vector3 diffV;
+  geometry_msgs::Vector3 diff_rotV;
+
   double roll = imu.x + initial[0];
   double yaw = imu.y + initial[1];
   double pitch = imu.z + initial[2];
 
-  double rotation_matrix[3][3] = {{cos(yaw)*cos(pitch),
-    sin(roll)*sin(yaw)*cos(pitch)-cos(roll)*sin(pitch),
-    cos(roll)*sin(yaw)*cos(pitch)+sin(roll)*sin(pitch)},
-    {cos(yaw)*cos(pitch),
-    sin(roll)*sin(yaw)*sin(pitch)+cos(roll)*cos(pitch),
-    cos(roll)*sin(yaw)*sin(pitch)-sin(roll)*cos(pitch)},
-    {-sin(yaw), sin(roll)*cos(yaw), sin(roll)*cos(yaw)}};
+  // double rotation_matrix[3][3] = {{cos(yaw)*cos(pitch),
+  //   sin(roll)*sin(yaw)*cos(pitch)-cos(roll)*sin(pitch),
+  //   cos(roll)*sin(yaw)*cos(pitch)+sin(roll)*sin(pitch)},
+  //   {cos(yaw)*cos(pitch),
+  //   sin(roll)*sin(yaw)*sin(pitch)+cos(roll)*cos(pitch),
+  //   cos(roll)*sin(yaw)*sin(pitch)-sin(roll)*cos(pitch)},
+  //   {-sin(yaw), sin(roll)*cos(yaw), sin(roll)*cos(yaw)}};
+  double rotation_matrix[3][3] = {{cos(roll)*cos(pitch) - sin(roll)*cos(yaw)*sin(pitch),
+    -cos(roll)*sin(pitch) - sin(roll)*cos(yaw)*cos(pitch),
+    sin(roll)*sin(yaw)},
+    {sin(roll)*cos(pitch) + cos(roll)*cos(yaw)*sin(pitch),
+    -sin(roll)*sin(pitch) + cos(roll)*cos(yaw)*cos(pitch),
+    -cos(roll)*sin(yaw)},
+    {sin(yaw)*sin(pitch), sin(yaw)*cos(pitch), cos(yaw)}};
 
-  geometry_msgs::Quaternion heading = geometry_msgs::Quaternion();
-
-  return heading;
+  substract(objective, position.vector, diff);
+  multiply(rotation_matrix, diff, diff_rot);
+  diffV.x = diff[0];
+  diffV.y = diff[1];
+  diffV.z = diff[2];
+  diff_rotV.x = diff_rot[0];
+  diff_rotV.y = diff_rot[1];
+  diff_rotV.z = diff_rot[2];
+  // ROS_INFO("initial: [%s]\nfinal: [%s]", diff, diff_rot);
+  diff_pub.publish(diffV);
+  diff_rot_pub.publish(diff_rotV);
+  heading.y = atan(diff_rot[1]/diff_rot[0]);
+  heading.x = std::sqrt(pow(diff_rot[0],2) + pow(diff_rot[1],2) + pow(diff_rot[2],2));
 }
 
 void multiply(double trans[3][3], double point[3], double result[3]) {
@@ -144,4 +170,10 @@ void multiply(double trans[3][3], double point[3], double result[3]) {
     }
     result[i] = sum;
   }
+}
+
+void substract(geometry_msgs::Vector3 vec1, geometry_msgs::Vector3 vec2, double result[3]) {
+  result[0] = vec1.x - vec2.x;
+  result[1] = vec1.y - vec2.y;
+  result[2] = vec1.z - vec2.z;
 }
