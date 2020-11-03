@@ -21,7 +21,8 @@ function evaluationFunction(file)
     trimesh(TR,'FaceColor','none','EdgeColor','k')
 %     axis([-scale(1) scale(1) -scale(2) scale(2) -scale(3) scale(3)]);
 %     axis([0 scale(1) 0 scale(2) 0 scale(3)]);
-    axis([0 scale(1) -scale(2)/2 scale(2)/2 -scale(3)/2 scale(3)/2]);
+%     axis([0 scale(1) -scale(2)/2 scale(2)/2 -scale(3)/2 scale(3)/2]);
+    axis equal
     xlabel('x')
     ylabel('y')
     zlabel('z')
