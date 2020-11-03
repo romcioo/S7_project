@@ -1,5 +1,4 @@
-Stupid_Hull_Base_1.stl
+Stupid_Hull_Base_1_1.STL
 3e4,3e4,3e4,0
 1
 0,0,0
-2e5,54e4,6e4
