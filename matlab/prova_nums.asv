@@ -54,14 +54,6 @@ p1=[0 0 0;
     0 0 1];
 plotIt(p1)
 
-euler = [0 0 0];
-p2 = addIt(rotateE(euler,p1,0),[1 1 1]);
-plotIt(p2)
-
-p3 = addIt(rotateE(euler,p2,1),[1 1 1]);
-% p3 = addIt(rotateE(euler,addIt(p2,-[1 1 1]),1),[2 2 2]);
-plotIt(p3)
-
 xlabel('x')
 ylabel('y')
 zlabel('z')
@@ -76,7 +68,5 @@ end
 
 function addPoints = addIt(points,p)
 addPoints = zeros(size(points));
-for i = 1:size(points,1)
-    addPoints(i,:) = points(i,:) + p;
-end
+
 end
