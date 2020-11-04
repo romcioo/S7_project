@@ -29,19 +29,28 @@ clear;clc;close all;
 % hold on
 % plot3(p1(1),p1(2),p1(3),'or')
 
+% points = [0 0 0;
+%     1 0 0;
+%     2 1 0;
+%     3 2 1];
+
 points = [0 0 0;
-    1 0 0;
-    2 1 0;
-    3 2 1];
+    0 1 0];
 
 plot3(points(:,1),points(:,2),points(:,3))
 axis equal
+xlabel('x')
+ylabel('y')
+zlabel('z')
 % eu = zeros(size(points));
 % eu(:,3) = pi/3*ones(size(points,1),1);
+% eu = [0 0 0;
+%     0 0 0;
+%     0 0 pi/4;
+%     0 -pi/4 pi/4];
+
 eu = [0 0 0;
-    0 0 0;
-    0 0 pi/4;
-    0 -pi/4 pi/4];
+    0 0 pi/4];
 
 TR = widthPath(points,.5,eu);
 figure;
@@ -52,6 +61,8 @@ axis equal
 xlabel('x')
 ylabel('y')
 zlabel('z')
+
+A = triangArea(TR);
 
 % figure;
 % hold on
@@ -77,15 +88,15 @@ zlabel('z')
 % axis equal
 % hold off
 
-function plotIt(p)
-plot3(p(1:2,1),p(1:2,2),p(1:2,3),'g')
-plot3(p(3:4,1),p(3:4,2),p(3:4,3),'r')
-plot3(p(5:6,1),p(5:6,2),p(5:6,3),'b')
-end
-
-function addPoints = addIt(points,p)
-addPoints = zeros(size(points));
-for i = 1:size(points,1)
-    addPoints(i,:) = points(i,:) + p;
-end
-end
+% function plotIt(p)
+% plot3(p(1:2,1),p(1:2,2),p(1:2,3),'g')
+% plot3(p(3:4,1),p(3:4,2),p(3:4,3),'r')
+% plot3(p(5:6,1),p(5:6,2),p(5:6,3),'b')
+% end
+% 
+% function addPoints = addIt(points,p)
+% addPoints = zeros(size(points));
+% for i = 1:size(points,1)
+%     addPoints(i,:) = points(i,:) + p;
+% end
+% end
