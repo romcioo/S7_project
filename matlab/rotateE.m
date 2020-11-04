@@ -1,4 +1,5 @@
 function rotPoints = rotateE(angles,points,reverse)
+angles = -angles;
 rotm = eul2rotm(angles,'XYZ');
 if reverse
     rotm = rotm^-1;

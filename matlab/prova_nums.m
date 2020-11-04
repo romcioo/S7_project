@@ -30,43 +30,52 @@ clear;clc;close all;
 % plot3(p1(1),p1(2),p1(3),'or')
 
 points = [0 0 0;
-    0 1 0;
-    1 2 0;
-    2 1 0];
+    1 0 0;
+    2 1 0;
+    3 2 1];
 
-plot(points(:,1),points(:,2))
+plot3(points(:,1),points(:,2),points(:,3))
 axis equal
+% eu = zeros(size(points));
+% eu(:,3) = pi/3*ones(size(points,1),1);
+eu = [0 0 0;
+    0 0 0;
+    0 0 pi/4;
+    0 -pi/4 pi/4];
 
-TR = widthPath(points,.5);
+TR = widthPath(points,.5,eu);
 figure;
 % plot(TR(:,1),TR(:,2),'or');
 % axis equal
 trimesh(TR,'FaceColor','none','EdgeColor','k')
 axis equal
-
-figure;
-hold on
-p1=[0 0 0;
-    1 0 0;
-    0 0 0;
-    0 1 0;
-    0 0 0;
-    0 0 1];
-plotIt(p1)
-
-euler = [0 0 0];
-p2 = addIt(rotateE(euler,p1,0),[1 1 1]);
-plotIt(p2)
-
-p3 = addIt(rotateE(euler,p2,1),[1 1 1]);
-% p3 = addIt(rotateE(euler,addIt(p2,-[1 1 1]),1),[2 2 2]);
-plotIt(p3)
-
 xlabel('x')
 ylabel('y')
 zlabel('z')
-axis equal
-hold off
+
+% figure;
+% hold on
+% p1=[0 0 0;
+%     1 0 0;
+%     0 0 0;
+%     0 1 0;
+%     0 0 0;
+%     0 0 1];
+% plotIt(p1)
+% 
+% euler = [0 0 0];
+% p2 = addIt(rotateE(euler,p1,0),[1 1 1]);
+% plotIt(p2)
+% 
+% p3 = addIt(rotateE(euler,p2,1),[1 1 1]);
+% % p3 = addIt(rotateE(euler,addIt(p2,-[1 1 1]),1),[2 2 2]);
+% plotIt(p3)
+% 
+% xlabel('x')
+% ylabel('y')
+% zlabel('z')
+% axis equal
+% hold off
 
 function plotIt(p)
 plot3(p(1:2,1),p(1:2,2),p(1:2,3),'g')
