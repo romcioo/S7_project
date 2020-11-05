@@ -19,6 +19,7 @@ for i = 1:size(T,1)/2
         eulIndex = int16(eulIndex/2);
         eu = euler(eulIndex,:);
         for j = 1:i-1
+            PR = rotateE(eu,P,0);
             
         end
     end

@@ -12,15 +12,24 @@ for i = 2:size(points,1)
     vect = rotateE(eu(i,:),vect,0);
     angle = atan(vect(2)/vect(1));
     shiftD = shift*[cos(angle) sin(angle) 0];
+    pT = zeros(4,3);
+    eui = eu(i,:);
     if i == 2
-        P(1,:) = rotateE(eu(i,:),(rP*shiftD')',1) + p2;
-        P(2,:) = rotateE(eu(i,:),(rN*shiftD')',1) + p2;
+        P(1,:) = rotateE(eui,(rP*shiftD')',1) + p2;
+        P(2,:) = rotateE(eui,(rN*shiftD')',1) + p2;
     end
-    P(2*i-1,:) = rotateE(eu(i,:),(rP*shiftD')',1) + p1;
-    P(2*i,:) = rotateE(eu(i,:),(rN*shiftD')',1) + p1;
+    P(2*i-1,:) = rotateE(eui,(rP*shiftD')',1) + p1;
+    P(2*i,:) = rotateE(eui,(rN*shiftD')',1) + p1;
     n = 2*(i-1);
-    T(n-1,:) = [n-1 n n+1];
-    T(n,:) = [n n+1 n+2];
+    for j = 1:4
+        pT(j,:) = rotateE(eui,P(2*i-(4-j),:),0);
+    end
+%     T(n-1,:) = [n-1 n n+1];
+%     T(n,:) = [n n+1 n+2];
+    nums = [n-1 n;n+1 n+2];
+    Trings = getTriangulation(pT,nums);
+    T(n-1,:) = Trings(1,:);
+    T(n,:) = Trings(2,:);
 end
 % P = rotateE(eu,P,1);
 TR = triangulation(T,P);
