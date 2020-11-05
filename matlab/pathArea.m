@@ -7,6 +7,7 @@ area = 0;
 for i = 1:size(T,1)/2
     preA = 0;
     tri = T(2*i-1:2*i,:);
+    rect1 = getRect(tri);
     for j = 1:2
         triangle = P(tri(1,:),:);
         preA = preA + triangArea(triangle);
@@ -19,8 +20,8 @@ for i = 1:size(T,1)/2
         eulIndex = int16(eulIndex/2);
         eu = euler(eulIndex,:);
         for j = 1:i-1
-            PR = rotateE(eu,P,0);
-            
+            rect2 = T(2*j-1:2*j,:);
+            interA = quadIntersect(rect1,rect2,P,eu);
         end
     end
 end
