@@ -100,3 +100,16 @@ A = triangArea(TR);
 %     addPoints(i,:) = points(i,:) + p;
 % end
 % end
+
+% p = [1 0 0;0 0 0;0 1 0;1 1 0];
+% num = [1 2;3 4];
+% T = getTriangulation(p,num);
+% TR = triangulation(T,p);
+% trimesh(TR,'FaceColor','none','EdgeColor','k')
+% rect = getRect(T);
+% figure
+% hold on
+% plot3(p(rect(1),1),p(rect(1),2),p(rect(1),3),'or');
+% plot3(p(rect(2),1),p(rect(2),2),p(rect(2),3),'og');
+% plot3(p(rect(3),1),p(rect(3),2),p(rect(3),3),'ob');
+% plot3(p(rect(4),1),p(rect(4),2),p(rect(4),3),'ok');
