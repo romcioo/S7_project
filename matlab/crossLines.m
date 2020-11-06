@@ -27,7 +27,6 @@ elseif isnan(L2(1))
     end
 else
     xC = roots(L1 - L2);
-%     assignin('base','xC',xC);
     yC = L1(1)*xC + L1(2);
     valid = 0;
     if size(xC,2) == 0 || size(xC,1) == 0

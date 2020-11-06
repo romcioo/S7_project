@@ -1,6 +1,5 @@
 function TR = widthPath(points,width,eu)
 shift = width/2;
-% points = rotateE(eu,points,0);
 rP = [0 -1 0;1 0 0;0 0 1];
 rN = [0 1 0;-1 0 0;0 0 1];
 P = zeros(2*size(points,1),size(points,2));
@@ -24,12 +23,9 @@ for i = 2:size(points,1)
     for j = 1:4
         pT(j,:) = rotateE(eui,P(2*i-(4-j),:),0);
     end
-%     T(n-1,:) = [n-1 n n+1];
-%     T(n,:) = [n n+1 n+2];
     nums = [n-1 n;n+1 n+2];
     Trings = getTriangulation(pT,nums);
     T(n-1,:) = Trings(1,:);
     T(n,:) = Trings(2,:);
 end
-% P = rotateE(eu,P,1);
 TR = triangulation(T,P);
