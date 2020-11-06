@@ -21,6 +21,7 @@ for i = 1:size(T,1)/2
         eu = euler(eulIndex,:);
         for j = 1:i-1
             rect2 = T(2*j-1:2*j,:);
+            rect2 = getRect(rect2);
             interA = quadIntersect(rect1,rect2,P,eu);
         end
     end

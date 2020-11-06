@@ -118,6 +118,14 @@ rect1 = p(rect,:);
 rect2 = [.5 .5 0;2 .5 0;.5 2 0;2 2 0];
 T = getTriangulation(rect2,num);
 TR1 = triangulation(T,rect2);
+rect22 = getRect(TR1);
+rect2 = rect2(rect22,:);
 hold on
 trimesh(TR1,'FaceColor','none','EdgeColor','g')
-[in,on] = inpolygon(rect(:,1),rect(:,2),rect2(:,1),rect2(:,2));
+[in,on] = inpolygon(rect1(:,1),rect1(:,2),rect2(:,1),rect2(:,2));
+[a,r] = averageZ(rect1);
+poly1 = polyshape(rect1(:,1),rect1(:,2));
+poly2 = polyshape(rect2(:,1),rect2(:,2));
+polyout = intersect(poly1,poly2);
+plot(polyout)
+area = polyout.area;
