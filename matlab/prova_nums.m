@@ -101,31 +101,66 @@ clear;clc;close all;
 % % end
 % % end
 
-figure
-p = [1 0 0;0 0 0;0 1 0;1 1 0];
-num = [1 2;3 4];
-T = getTriangulation(p,num);
-TR = triangulation(T,p);
-trimesh(TR,'FaceColor','none','EdgeColor','k')
-rect = getRect(T);
-rect1 = p(rect,:);
 % figure
+% p = [1 0 0;0 0 0;0 1 0;1 1 0];
+% num = [1 2;3 4];
+% T = getTriangulation(p,num);
+% TR = triangulation(T,p);
+% trimesh(TR,'FaceColor','none','EdgeColor','k')
+% rect = getRect(T);
+% rect1 = p(rect,:);
+% % figure
+% % hold on
+% % plot3(p(rect(1),1),p(rect(1),2),p(rect(1),3),'or');
+% % plot3(p(rect(2),1),p(rect(2),2),p(rect(2),3),'og');
+% % plot3(p(rect(3),1),p(rect(3),2),p(rect(3),3),'ob');
+% % plot3(p(rect(4),1),p(rect(4),2),p(rect(4),3),'ok');
+% rect2 = [.5 .5 0;2 .5 0;.5 2 0;2 2 0];
+% T = getTriangulation(rect2,num);
+% TR1 = triangulation(T,rect2);
+% rect22 = getRect(TR1.ConnectivityList);
+% rect2 = rect2(rect22,:);
 % hold on
-% plot3(p(rect(1),1),p(rect(1),2),p(rect(1),3),'or');
-% plot3(p(rect(2),1),p(rect(2),2),p(rect(2),3),'og');
-% plot3(p(rect(3),1),p(rect(3),2),p(rect(3),3),'ob');
-% plot3(p(rect(4),1),p(rect(4),2),p(rect(4),3),'ok');
-rect2 = [.5 .5 0;2 .5 0;.5 2 0;2 2 0];
-T = getTriangulation(rect2,num);
-TR1 = triangulation(T,rect2);
-rect22 = getRect(TR1);
-rect2 = rect2(rect22,:);
+% trimesh(TR1,'FaceColor','none','EdgeColor','g')
+% [in,on] = inpolygon(rect1(:,1),rect1(:,2),rect2(:,1),rect2(:,2));
+% [a,r] = averageZ(rect1);
+% poly1 = polyshape(rect1(:,1),rect1(:,2));
+% poly2 = polyshape(rect2(:,1),rect2(:,2));
+% polyout = intersect(poly1,poly2);
+% plot(polyout)
+% area = polyout.area;
+
+p1 = [1 0;2 0;2 2;1 2];
+poly1 = polyshape(p1(:,1),p1(:,2));
+
+p2 = [0 .5;3 .5;3 1.5;0 1.5];
+poly2 = polyshape(p2(:,1),p2(:,2));
+
+plot(poly1)
 hold on
-trimesh(TR1,'FaceColor','none','EdgeColor','g')
-[in,on] = inpolygon(rect1(:,1),rect1(:,2),rect2(:,1),rect2(:,2));
-[a,r] = averageZ(rect1);
-poly1 = polyshape(rect1(:,1),rect1(:,2));
-poly2 = polyshape(rect2(:,1),rect2(:,2));
-polyout = intersect(poly1,poly2);
-plot(polyout)
-area = polyout.area;
+plot(poly2)
+axis equal
+
+figure
+rest = intersect(poly1,poly2);
+poly3 = subtract(poly1,rest);
+plot(poly3)
+axis equal
+
+figure
+poly4 = subtract(poly1,poly2);
+plot(poly4)
+axis equal
+title('Bona')
+
+p5 = [1 0;2 0;2 .5;1 .5];
+poly5 = polyshape(p5(:,1),p5(:,2));
+poly6 = subtract(poly4,poly5);
+figure
+plot(poly6)
+axis equal
+
+figure
+poly7 = subtract(poly4,poly1);
+plot(poly7)
+axis equal
