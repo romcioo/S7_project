@@ -91,7 +91,7 @@ geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point) { //
   return vector;
 }
 
-std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position) { // Check if the robot hast arrived to the current goal
+std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position) { // Check if the robot has arrived to the current goal
   float error = .25; // radious to accept reached
 
   /*Difference on each coordinate*/
