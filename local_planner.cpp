@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     reached = reachedQ(objective, position.vector);
     reached_pub.publish(reached);
 
-    head(initial_rotation, position, heading, diff_pub, diff_rot_pub);
+    head(initial_rotation, position, heading);
     heading_pub.publish(heading);
 
     ros::spinOnce();
