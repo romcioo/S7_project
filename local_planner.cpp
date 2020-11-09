@@ -20,24 +20,29 @@ extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
 
 geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
 std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position);
-void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msgs::Vector3 &heading, ros::Publisher diff_pub, ros::Publisher diff_rot_pub);
+void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msgs::Vector3 &heading);
 void multiply(double trans[3][3], double point[3], double result[3]);
 void substract(geometry_msgs::Vector3 vec1, geometry_msgs::Vector3 vec2, double result[3]);
 /*!Declare!*/
 
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "planner");
-  ros::NodeHandle n;
+  ros::init(argc, argv, "planner"); // planner node
+  ros::NodeHandle n; // Node
+
+  /*Publishers*/
   ros::Publisher heading_pub = n.advertise<geometry_msgs::Vector3>("heading", 1000);
   ros::Publisher visited_pub = n.advertise<geometry_msgs::Vector3Stamped>("path", 1000);
   ros::Publisher reached_pub = n.advertise<std_msgs::Bool>("reachPoint", 1000);
+  /*!Publishers!*/
 
+  /*Subscribers*/
   ros::Subscriber objective_sub = n.subscribe("goal", 1000, objectiveCallback);
   ros::Subscriber global_position_sub = n.subscribe("robot_pose", 1000, globalCallback);
   ros::Subscriber imu_sub = n.subscribe("imuValues", 1000, imuCallback);
+  /*!Subscribers!*/
 
-  ros::Rate loop_rate(1);
+  ros::Rate loop_rate(1); // time delay in Hz
 
   geometry_msgs::Vector3Stamped position;
   std_msgs::Bool reached;
@@ -94,7 +99,7 @@ std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3
   return reached;
 }
 
-void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msgs::Vector3 &heading, ros::Publisher diff_pub, ros::Publisher diff_rot_pub) {
+void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msgs::Vector3 &heading) {
   double diff[3];
   double diff_rot[3];
   geometry_msgs::Vector3 diffV;
