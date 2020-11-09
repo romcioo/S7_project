@@ -2,7 +2,7 @@ function area = pathArea(TR,euler)
 P = TR.Points;
 T = TR.ConnectivityList;
 
-area = 0;
+area = zeros(1,size(T,1)/2);
 
 for i = 1:size(T,1)/2
     tri = T(2*i-1:2*i,:);
@@ -13,7 +13,7 @@ for i = 1:size(T,1)/2
     end
     
     if i == 1
-        area = preA;
+        area(i) = preA;
     else
         eulIndex = max(max(tri));
         eulIndex = int16(eulIndex/2);
@@ -22,7 +22,8 @@ for i = 1:size(T,1)/2
         po1 = PR(rect1,:);
         poly1 = polyshape(po1(:,1),po1(:,2));
         [av1,rng1] = averageZ(po1);
-        for j = 1:i-1
+        j = 1;
+        while j < i
             rect2 = T(2*j-1:2*j,:);
             rect2 = getRect(rect2);
             po2 = PR(rect2,:);
@@ -31,7 +32,12 @@ for i = 1:size(T,1)/2
             if abs(rng1-rng2) < .5 && abs(av1-av2) < .5
                 poly1 = subtract(poly1,poly2);
             end
+            if poly1.area == 0
+                j = i;
+            else
+               j = j + 1; 
+            end
         end
-        area = area + poly1.area;
+        area(i) = area(i-1) + poly1.area;
     end
 end
