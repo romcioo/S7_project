@@ -27,13 +27,13 @@ void subtract(geometry_msgs::Vector3 vec1, geometry_msgs::Vector3 vec2, double r
 
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "planner"); // planner node
+  ros::init(argc, argv, "planner"); // topic name remappings
   ros::NodeHandle n; // Node
 
   /*Publishers*/
   ros::Publisher heading_pub = n.advertise<geometry_msgs::Vector3>("heading", 1000);
   ros::Publisher visited_pub = n.advertise<geometry_msgs::Vector3Stamped>("path", 1000);
-  ros::Publisher reached_pub = n.advertise<std_msgs::Bool>("reachPoint", 1000);
+  ros::Publisher reached_pub = n.advertise<std_msgs::Bool>("reachPoint", 1);
   /*!Publishers!*/
 
   /*Subscribers*/
