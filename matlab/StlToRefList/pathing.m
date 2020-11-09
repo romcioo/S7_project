@@ -8,7 +8,9 @@ clear; close all;
 str = ["Stupid_Hull_Base_1_1"; "Stupid_Hull_Base_1_2" ; "Stupid_Hull_Base_2_1"; "Stupid_Hull_Base_2_2"; "Stupid_Hull_Base_3_1"; "Stupid_Hull_Base_3_2"];
 
 for i = 1:size(str)
+   
     s = str(i);
+    
     stl = strcat(str(i) , '.STL');
     
     triangles = read_binary_stl_file(stl);
@@ -16,11 +18,6 @@ for i = 1:size(str)
     trianglesRotX = rotate_stl(triangles,'x',90);
 
     trianglesRotY = rotate_stl(trianglesRotX,'y',180);
-
-    plot_stl(trianglesRotY);
-
-    axis equal
-
     heigth = 5;
 
     tic;[moveList,z_slices]=slice_stl_create_path(trianglesRotY,heigth);toc;
@@ -31,5 +28,3 @@ for i = 1:size(str)
 
     fprintf("List done");
 end
-%tic;plot_slices(moveList,z_slices, 0.0001);toc;
-
