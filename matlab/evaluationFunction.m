@@ -47,7 +47,7 @@ function orderList = order(coords)
         for j = 1:3
             m = max(coords(:,j)); % get the maximum value of the 
             if i == 1 % if its the first iteration
-                if m > maxim % check for the maximum lengh
+                if m > maxim % check for the maximum length
                     maxim = m; % set the maximum value found
                     minim = m; % set the minimum value to the maximum to set it up for the next iteration
                     index = j; % get the coordenate that satisfies it
@@ -61,7 +61,7 @@ function orderList = order(coords)
         end
         if i == 1 % set the long length
             orderList(1) = index; % as the x
-        else % set the shortes
+        else % set the shortest
             orderList(3) = index; % to the z coordinates
         end
         count = count + index; % sum indexes
