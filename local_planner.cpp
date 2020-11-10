@@ -105,7 +105,7 @@ std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3
   return reached;
 }
 
-void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msgs::Vector3 &heading) { // calculate te turning angle and distance to the goal
+void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msgs::Vector3 &heading) { // calculate the turning angle and distance to the goal
   /*Declare*/
   double diff[3];
   double diff_rot[3];
