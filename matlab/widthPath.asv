@@ -14,17 +14,17 @@ for i = 2:size(points,1) % go through all points
     pT = zeros(4,3);
     eui = eu(i,:); % get the angles of the points
     if i == 2 % for the first iteration
-        P(1,:) = rotateE(eui,(rP*shiftD')',1) + p2; % get the 2 firts points in global coordinates
+        P(1,:) = rotateE(eui,(rP*shiftD')',1) + p2; % get the 2 firts points
         P(2,:) = rotateE(eui,(rN*shiftD')',1) + p2;
     end
-    P(2*i-1,:) = rotateE(eui,(rP*shiftD')',1) + p1; % points in global coordinates
+    P(2*i-1,:) = rotateE(eui,(rP*shiftD')',1) + p1;
     P(2*i,:) = rotateE(eui,(rN*shiftD')',1) + p1;
     n = 2*(i-1);
     for j = 1:4
-        pT(j,:) = rotateE(eui,P(2*i-(4-j),:),0); % get the points on the robot coordinates
+        pT(j,:) = rotateE(eui,P(2*i-(4-j),:),0);
     end
     nums = [n-1 n;n+1 n+2];
-    Trings = getTriangulation(pT,nums); % get the trinagles
+    Trings = getTriangulation(pT,nums);
     T(n-1,:) = Trings(1,:);
     T(n,:) = Trings(2,:);
 end
