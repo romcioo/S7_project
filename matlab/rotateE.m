@@ -1,6 +1,6 @@
 function rotPoints = rotateE(angles,points,reverse)
 angles = -angles; % set negative angles to make it work
-rotm = eul2rotm(angles,'XYZ'); % get the rotaiton matrix
+rotm = eul2rotm(angles,'XYZ'); % get the rotation matrix
 if reverse % if its necessary to go back to the global
     rotm = rotm^-1; % reverse
 end
