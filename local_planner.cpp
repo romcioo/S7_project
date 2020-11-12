@@ -20,7 +20,7 @@ extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
 
 geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
 std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position);
-void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msgs::Vector3 &heading);
+void head(double initial[], geometry_msgs::Vector3Stamped position, ros::Publisher global_imu_pub, geometry_msgs::Vector3 &heading);
 void multiply(double trans[3][3], double point[3], double result[3]);
 void subtract(geometry_msgs::Vector3 vec1, geometry_msgs::Vector3 vec2, double result[3]);
 /*!Declare!*/
@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
   ros::Publisher heading_pub = n.advertise<geometry_msgs::Vector3>("heading", 1000);
   ros::Publisher visited_pub = n.advertise<geometry_msgs::Vector3Stamped>("path", 1000);
   ros::Publisher reached_pub = n.advertise<std_msgs::Bool>("reachPoint", 1);
+  ros::Publisher absolute_imu_pub = n.advertise<geometry_msgs::Vector3>("absoluteIMU", 1000);
   /*!Publishers!*/
 
   /*Subscribers*/
@@ -58,7 +59,7 @@ int main(int argc, char **argv) {
     reached = reachedQ(objective, position.vector);
     reached_pub.publish(reached);
 
-    head(initial_rotation, position, heading);
+    head(initial_rotation, position, absolute_imu_pub, heading);
     heading_pub.publish(heading);
 
     ros::spinOnce();
@@ -105,7 +106,7 @@ std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3
   return reached;
 }
 
-void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msgs::Vector3 &heading) { // calculate the turning angle and distance to the goal
+void head(double initial[], geometry_msgs::Vector3Stamped position, ros::Publisher global_imu_pub, geometry_msgs::Vector3 &heading) { // calculate the turning angle and distance to the goal
   /*Declare*/
   double diff[3];
   double diff_rot[3];
@@ -114,6 +115,12 @@ void head(double initial[], geometry_msgs::Vector3Stamped position, geometry_msg
   double roll = imu.x + initial[0];
   double yaw = imu.y + initial[1];
   double pitch = imu.z + initial[2];
+
+  geometry_msgs::Vector3 pub_imu;
+  pub_imu.x = roll;
+  pub_imu.y = yaw;
+  pub_imu.z = pitch;
+  global_imu_pub.publish(pub_imu);
 
   /*Matrix to rotate on Euler angles*/
   double rotation_matrix[3][3] = {{cos(roll)*cos(pitch) - sin(roll)*cos(yaw)*sin(pitch),
