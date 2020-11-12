@@ -116,11 +116,13 @@ void head(double initial[], geometry_msgs::Vector3Stamped position, ros::Publish
   double yaw = imu.y + initial[1];
   double pitch = imu.z + initial[2];
 
+  /*Publis global IMU*/
   geometry_msgs::Vector3 pub_imu;
   pub_imu.x = roll;
   pub_imu.y = yaw;
   pub_imu.z = pitch;
   global_imu_pub.publish(pub_imu);
+  /*!Publis global IMU!*/
 
   /*Matrix to rotate on Euler angles*/
   double rotation_matrix[3][3] = {{cos(roll)*cos(pitch) - sin(roll)*cos(yaw)*sin(pitch),
