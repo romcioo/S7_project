@@ -54,12 +54,12 @@ int main(int argc, char **argv) {
 
   while (ros::ok()) {
     // position = addNoise(global_position);
-    visited_pub.publish(global_position);
+    // visited_pub.publish(global_position);
 
-    reached = reachedQ(objective, position.vector);
+    reached = reachedQ(objective, global_position.vector);
     reached_pub.publish(reached);
 
-    head(initial_rotation, position, absolute_imu_pub, heading);
+    head(initial_rotation, global_position, absolute_imu_pub, heading);
     heading_pub.publish(heading);
 
     ros::spinOnce();
