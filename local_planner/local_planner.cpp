@@ -18,7 +18,7 @@ extern geometry_msgs::Vector3Stamped global_position = geometry_msgs::Vector3Sta
 void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg);
 extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
 
-geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
+// geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
 std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position);
 void head(double initial[], geometry_msgs::Vector3Stamped position, ros::Publisher global_imu_pub, geometry_msgs::Vector3 &heading);
 void multiply(double trans[3][3], double point[3], double result[3]);
@@ -32,29 +32,29 @@ int main(int argc, char **argv) {
 
   /*Publishers*/
   ros::Publisher heading_pub = n.advertise<geometry_msgs::Vector3>("heading", 1000);
-  ros::Publisher visited_pub = n.advertise<geometry_msgs::Vector3Stamped>("path", 1000);
+  // ros::Publisher visited_pub = n.advertise<geometry_msgs::Vector3Stamped>("path", 1000);
   ros::Publisher reached_pub = n.advertise<std_msgs::Bool>("reachPoint", 1);
   ros::Publisher absolute_imu_pub = n.advertise<geometry_msgs::Vector3>("absoluteIMU", 1000);
   /*!Publishers!*/
 
   /*Subscribers*/
   ros::Subscriber objective_sub = n.subscribe("goal", 1000, objectiveCallback);
-  ros::Subscriber global_position_sub = n.subscribe("robot_pose", 1000, globalCallback);
+  ros::Subscriber global_position_sub = n.subscribe("path", 1000, globalCallback);
   ros::Subscriber imu_sub = n.subscribe("imuValues", 1000, imuCallback);
   /*!Subscribers!*/
 
   ros::Rate loop_rate(10); // time delay in Hz (10Hz)
 
   /*Declare*/
-  geometry_msgs::Vector3Stamped position;
+  // geometry_msgs::Vector3Stamped position;
   std_msgs::Bool reached;
   geometry_msgs::Vector3 heading = geometry_msgs::Vector3();
   double initial_rotation[3] = {0,0,0};
   /*!Declare!*/
 
   while (ros::ok()) {
-    position = addNoise(global_position);
-    visited_pub.publish(position);
+    // position = addNoise(global_position);
+    visited_pub.publish(global_position);
 
     reached = reachedQ(objective, position.vector);
     reached_pub.publish(reached);
@@ -86,11 +86,11 @@ void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg) {
 }
 /*!Get ROS information into main!*/
 
-geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point) { // add noise to the position
-  geometry_msgs::Vector3Stamped vector = point;
-
-  return vector;
-}
+// geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point) { // add noise to the position
+//   geometry_msgs::Vector3Stamped vector = point;
+//
+//   return vector;
+// }
 
 std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position) { // Check if the robot has arrived to the current goal
   float error = .25; // radious to accept reached

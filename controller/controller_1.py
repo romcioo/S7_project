@@ -8,9 +8,11 @@ import rospy
 import os
 
 from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import Vector3Stamped
 from std_msgs.msg import Int16
 from std_msgs.msg import Float32
 from std_msgs.msg import String
+from sensor_msgs.msg import Image
 
 ##[Functions]
 
@@ -18,6 +20,7 @@ from std_msgs.msg import String
 def headingCallback(msg):
     global heading_msg
     heading_msg = msg
+    pass
 ##![Callback]
 
 def clamp(value, low, high):
@@ -39,45 +42,50 @@ def side_sign(angle, front):
     return side
 
 ## [Drive - Side]
-def drive_side(heading_msg):
-    angle = heading_msg.y
-    distance = heading_msg.x
+def drive_side(msg):
+    angle = msg.y
+    distance = msg.x
 
     ##[Control drive]
-    if abs(heading_angle) <= math.pi/2: # ahead of the robot
-        if abs(heading_angle) > 5*math.pi/180: # 5º
-            side = side_sign(heading_angle,True)
+    if abs(angle) <= math.pi/2: # ahead of the robot
+        if abs(angle) > 5*math.pi/180: # 5º
+            side = side_sign(angle,True)
 
             drive = 0
-            if goal_dist > 5 and abs(heading_angle) < math.pi/4: # 45º
+            if distance > 5 and abs(angle) < math.pi/4: # 45º
                 drive = 1
-            elif goal_dist > 2 and abs(heading_angle) < 2*math.pi/18: # 20º
+            elif distance > 2 and abs(angle) < 2*math.pi/18: # 20º
                 drive = 1
         else:
             drive = 1
-            if goal_dist < 1:
-                side = side_sign(heading_angle,True)
+            if distance < 1:
+                side = side_sign(angle,True)
             else:
                 side = 0
     else:
-        if abs(heading_angle) < (math.pi - 5*math.pi/180): # 5º
-            side = side_sign(heading_angle,False)
+        if abs(angle) < (math.pi - 5*math.pi/180): # 5º
+            side = side_sign(angle,False)
 
             drive = 0
-            if goal_dist > 5 and abs(heading_angle) > (math.pi - math.pi/4): # 45º
+            if distance > 5 and abs(angle) > (math.pi - math.pi/4): # 45º
                 drive = -1
-            elif goal_dist > 2 and abs(heading_angle) > (math.pi - 2*math.pi/18): # 20º
+            elif distance > 2 and abs(angle) > (math.pi - 2*math.pi/18): # 20º
                 drive = -1
         else:
             drive = -1
-            if goal_dist < 1:
-                side = side_sign(heading_angle,False)
+            if distance < 1:
+                side = side_sign(angle,False)
             else:
                 side = 0
     ##![Control drive]
 
     return drive, side
 ## ![Drive - Side]
+
+## [Add noise]
+def addNoise(real_point, robot_pose):
+    return real_point
+## ![Add noise]
 
 ##![Functions]
 
@@ -89,6 +97,8 @@ pitch_disturbance = 0
 roll_disturbance = 0
 yaw_disturbance = 0
 
+initials = [0, 0, 0]
+
 # get the time step of the current world.
 timeStep = int(robot.getBasicTimeStep())
 # print("Time Step is: "+str(timeStep))
@@ -99,9 +109,11 @@ rospy.init_node('python_submarine_controller', anonymous=True) # node is called 
 
 ##[Publishers]
 imu_pub = rospy.Publisher('imuValues', Vector3, queue_size=1000)
-speed_pub = rospy.Publisher("headingSpeed",Float32,queue_size=10)
-velocity_pub = rospy.Publisher('submarineVelocity', Vector3, queue_size=10)
-global_pos_pub = rospy.Publisher("robot_pose", Vector3, queue_size=1000)
+speed_pub = rospy.Publisher("headingSpeed",Vector3,queue_size=10)
+velocity_pub = rospy.Publisher('submarineVelocity', Float32, queue_size=10)
+global_pos_pub = rospy.Publisher("path", Vector3Stamped, queue_size=1000)
+camera_pub = rospy.Publisher('python_submarine_camera_images', Image, queue_size=10)
+rearcamera_pub = rospy.Publisher('python_submarine_rear_camera_images', Image, queue_size=10)
 ##![Publishers]
 
 ##[Subscriber]
@@ -164,7 +176,9 @@ k_vertical_d = 1000
 
 robot.step(timeStep)
 xpos, altitude , zpos = GPSsensor.getValues()
-global_pos = Vector3(xpos, altitude, zpos)
+global_pos_head = Vector3(xpos, altitude, zpos)
+global_pos = Vector3Stamped()
+global_pos.header = global_pos_head
 global_pos_pub.publish(global_pos)
 xpos_old = xpos
 altitude_old = altitude
@@ -179,7 +193,24 @@ angle_dist = 0.785398
 angle_lock = -2.0944
 
 clampval = 10000
+
+camera = robot.getCamera("camera")
+camera.enable(timeStep)
+
+rearcamera = robot.getCamera("rearcamera")
+rearcamera.enable(timeStep)
+
+front_left_motor_input = -2*k_vertical_thrust
+front_right_motor_input = -2*k_vertical_thrust
+rear_left_motor_input = -2*k_vertical_thrust
+rear_right_motor_input = -2*k_vertical_thrust
 ##![Declare]
+
+## [Initialize]
+heading_msg = Vector3(0,0,0)
+robot_pose = (0,0,0)
+pose = Vector3Stamped()
+## ![Initialize]
 
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
@@ -188,6 +219,9 @@ while robot.step(timeStep) != -1:
     roll, pitch, heading = IMUsensor.getRollPitchYaw()
     xpos, altitude , zpos = GPSsensor.getValues()
     roll_vel, bleh, pitch_vel = GYROsensor.getValues()
+
+    robot_pose = addNoise((xpos, altitude , zpos), robot_pose)
+    pose.vector = robot_pose
 
     ##[Derivate position for speed]
     littleTimeStep = timeStep/1000.0
@@ -206,6 +240,27 @@ while robot.step(timeStep) != -1:
     fr_wheel=0
     rl_wheel=0
     rr_wheel=0
+
+    ## Now we send some things to ros BELOW
+    camera_image_msg = Image()
+    camera_image_msg.width = 320
+    camera_image_msg.height = 240
+    camera_image_msg.encoding = "bgra8"
+    camera_image_msg.is_bigendian = 1
+    camera_image_msg.step = 1280
+    camera_image_msg.data = camera.getImage()
+    camera_pub.publish(camera_image_msg)
+
+
+    ## Now we send some things to ros BELOW
+    rearcamera_image_msg = Image()
+    rearcamera_image_msg.width = 320
+    rearcamera_image_msg.height = 240
+    rearcamera_image_msg.encoding = "bgra8"
+    rearcamera_image_msg.is_bigendian = 1
+    rearcamera_image_msg.step = 1280
+    rearcamera_image_msg.data = rearcamera.getImage()
+    rearcamera_pub.publish(rearcamera_image_msg)
 
     radcoeff = 180.0/math.pi
     scaling = -1
@@ -229,10 +284,10 @@ while robot.step(timeStep) != -1:
     rl_wheel=4*drive+4*side
     rr_wheel=4*drive-4*side
 
-    front_left_motor.setVelocity(CLAMP(front_left_motor_input,-clampval,clampval))#positive is up  #0.44467908653
-    front_right_motor.setVelocity(CLAMP(-front_right_motor_input,-clampval,clampval))#negative is up #0.44616503673
-    rear_left_motor.setVelocity(CLAMP(-rear_left_motor_input,-clampval,clampval))#negative is up     #0.42589835641
-    rear_right_motor.setVelocity(CLAMP(rear_right_motor_input,-clampval,clampval))#positive is up  #0.42744959936
+    front_left_motor.setVelocity(clamp(front_left_motor_input,-clampval,clampval))#positive is up  #0.44467908653
+    front_right_motor.setVelocity(clamp(-front_right_motor_input,-clampval,clampval))#negative is up #0.44616503673
+    rear_left_motor.setVelocity(clamp(-rear_left_motor_input,-clampval,clampval))#negative is up     #0.42589835641
+    rear_right_motor.setVelocity(clamp(rear_right_motor_input,-clampval,clampval))#positive is up  #0.42744959936
 
     FL_wheel.setVelocity(fl_wheel)
     FR_wheel.setVelocity(fr_wheel)
