@@ -3,7 +3,7 @@
 #include "std_msgs/Bool.h"
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/Vector3.h"
-#include "geometry_msgs/Vector3Stamped.h"
+// #include "geometry_msgs/Vector3Stamped.h"
 #include <sstream>
 #include <iostream>
 #include <random>
@@ -13,14 +13,14 @@
 /*Declare*/
 void objectiveCallback(const geometry_msgs::Vector3::ConstPtr& msg);
 extern geometry_msgs::Vector3 objective = geometry_msgs::Vector3();
-void globalCallback(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
-extern geometry_msgs::Vector3Stamped global_position = geometry_msgs::Vector3Stamped();
+void globalCallback(const geometry_msgs::Quaternion::ConstPtr& msg);
+extern geometry_msgs::Quaternion global_position = geometry_msgs::Quaternion();
 void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg);
 extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
 
 // geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
-std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position);
-void head(double initial[], geometry_msgs::Vector3Stamped position, ros::Publisher global_imu_pub, geometry_msgs::Vector3 &heading);
+std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Quaternion position);
+void head(double initial[], geometry_msgs::Quaternion position, geometry_msgs::Vector3 &heading);
 void multiply(double trans[3][3], double point[3], double result[3]);
 void subtract(geometry_msgs::Vector3 vec1, geometry_msgs::Vector3 vec2, double result[3]);
 /*!Declare!*/
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   ros::Publisher heading_pub = n.advertise<geometry_msgs::Vector3>("heading", 1000);
   // ros::Publisher visited_pub = n.advertise<geometry_msgs::Vector3Stamped>("path", 1000);
   ros::Publisher reached_pub = n.advertise<std_msgs::Bool>("reachPoint", 1);
-  ros::Publisher absolute_imu_pub = n.advertise<geometry_msgs::Vector3>("absoluteIMU", 1000);
+  // ros::Publisher absolute_imu_pub = n.advertise<geometry_msgs::Vector3>("absoluteIMU", 1000);
   /*!Publishers!*/
 
   /*Subscribers*/
@@ -56,10 +56,10 @@ int main(int argc, char **argv) {
     // position = addNoise(global_position);
     // visited_pub.publish(global_position);
 
-    reached = reachedQ(objective, global_position.vector);
+    reached = reachedQ(objective, global_position);
     reached_pub.publish(reached);
 
-    head(initial_rotation, global_position, absolute_imu_pub, heading);
+    head(initial_rotation, global_position, heading);
     heading_pub.publish(heading);
 
     ros::spinOnce();
@@ -77,7 +77,7 @@ void objectiveCallback(const geometry_msgs::Vector3::ConstPtr& msg){
   objective = *msg;
 }
 
-void globalCallback(const geometry_msgs::Vector3Stamped::ConstPtr& msg) {
+void globalCallback(const geometry_msgs::Quaternion::ConstPtr& msg) {
   global_position = *msg;
 }
 
@@ -92,7 +92,7 @@ void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg) {
 //   return vector;
 // }
 
-std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3 position) { // Check if the robot has arrived to the current goal
+std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Quaternion position) { // Check if the robot has arrived to the current goal
   float error = .25; // radious to accept reached
 
   /*Difference on each coordinate*/
@@ -106,21 +106,22 @@ std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Vector3
   return reached;
 }
 
-void head(double initial[], geometry_msgs::Vector3Stamped position, ros::Publisher global_imu_pub, geometry_msgs::Vector3 &heading) { // calculate the turning angle and distance to the goal
+void head(double initial[], geometry_msgs::Quaternion position, geometry_msgs::Vector3 &heading) { // calculate the turning angle and distance to the goal
   /*Declare*/
   double diff[3];
   double diff_rot[3];
+  geometry_msgs::Vector3 pos;
   /*!Declare!*/
 
-  double roll = imu.x + initial[0];
-  double yaw = imu.y + initial[1];
-  double pitch = imu.z + initial[2];
+  double roll = imu.x; //+ initial[0];
+  double yaw = imu.y; //+ initial[1];
+  double pitch = imu.z; //+ initial[2];
 
-  geometry_msgs::Vector3 pub_imu;
-  pub_imu.x = roll;
-  pub_imu.y = yaw;
-  pub_imu.z = pitch;
-  global_imu_pub.publish(pub_imu);
+  // geometry_msgs::Vector3 pub_imu;
+  // pub_imu.x = roll;
+  // pub_imu.y = yaw;
+  // pub_imu.z = pitch;
+  // global_imu_pub.publish(pub_imu);
 
   /*Matrix to rotate on Euler angles*/
   double rotation_matrix[3][3] = {{cos(roll)*cos(pitch) - sin(roll)*cos(yaw)*sin(pitch),
@@ -132,8 +133,13 @@ void head(double initial[], geometry_msgs::Vector3Stamped position, ros::Publish
     {sin(yaw)*sin(pitch), sin(yaw)*cos(pitch), cos(yaw)}};
   /*!Matrix to rotate on Euler angles!*/
 
+  pos = geometry_msgs::Vector3();
+  pos.x = position.x;
+  pos.y = position.y;
+  pos.z = position.z;
+
   /*Get vector rotated*/
-  subtract(objective, position.vector, diff);
+  subtract(objective, pos, diff);
   multiply(rotation_matrix, diff, diff_rot);
   /*Get vector rotated*/
 

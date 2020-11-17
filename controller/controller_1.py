@@ -6,9 +6,10 @@ import math
 import time
 import rospy
 import os
+# import time
 
 from geometry_msgs.msg import Vector3
-from geometry_msgs.msg import Vector3Stamped
+from geometry_msgs.msg import Quaternion
 from std_msgs.msg import Int16
 from std_msgs.msg import Float32
 from std_msgs.msg import String
@@ -101,6 +102,8 @@ initials = [0, 0, 0]
 
 # get the time step of the current world.
 timeStep = int(robot.getBasicTimeStep())
+# tsp = rospy.Time()
+tsp = timeStep/1000.0
 # print("Time Step is: "+str(timeStep))
 
 # Get and enable devices.
@@ -111,9 +114,10 @@ rospy.init_node('python_submarine_controller', anonymous=True) # node is called 
 imu_pub = rospy.Publisher('imuValues', Vector3, queue_size=1000)
 speed_pub = rospy.Publisher("headingSpeed",Vector3,queue_size=10)
 velocity_pub = rospy.Publisher('submarineVelocity', Float32, queue_size=10)
-global_pos_pub = rospy.Publisher("path", Vector3Stamped, queue_size=1000)
+path_pub = rospy.Publisher("path", Quaternion, queue_size=1000)
 camera_pub = rospy.Publisher('python_submarine_camera_images', Image, queue_size=10)
 rearcamera_pub = rospy.Publisher('python_submarine_rear_camera_images', Image, queue_size=10)
+true_pos_pub = rospy.Publisher('true_position', Quaternion, queue_size=10)
 ##![Publishers]
 
 ##[Subscriber]
@@ -176,10 +180,14 @@ k_vertical_d = 1000
 
 robot.step(timeStep)
 xpos, altitude , zpos = GPSsensor.getValues()
-global_pos_head = Vector3(xpos, altitude, zpos)
-global_pos = Vector3Stamped()
-global_pos.header = global_pos_head
-global_pos_pub.publish(global_pos)
+# true_pos_vector = Vector3(xpos, altitude, zpos)
+# true_pos = Quaternion()
+# true_pos.vector = true_pos_vector
+time = 0
+# true_pos.header.stamp.secs = time
+true_pos = Quaternion(xpos, altitude, zpos, time)
+robot_pose = (xpos, altitude, zpos)
+# true_pos_pub.publish(true_pos)
 xpos_old = xpos
 altitude_old = altitude
 zpos_old = zpos
@@ -200,16 +208,17 @@ camera.enable(timeStep)
 rearcamera = robot.getCamera("rearcamera")
 rearcamera.enable(timeStep)
 
-front_left_motor_input = -2*k_vertical_thrust
-front_right_motor_input = -2*k_vertical_thrust
-rear_left_motor_input = -2*k_vertical_thrust
-rear_right_motor_input = -2*k_vertical_thrust
+lock_on = 10
+front_left_motor_input = lock_on*k_vertical_thrust
+front_right_motor_input = lock_on*k_vertical_thrust
+rear_left_motor_input = lock_on*k_vertical_thrust
+rear_right_motor_input = lock_on*k_vertical_thrust
 ##![Declare]
 
 ## [Initialize]
 heading_msg = Vector3(0,0,0)
-robot_pose = (0,0,0)
-pose = Vector3Stamped()
+# robot_pose = (0,0,0)
+pose = Quaternion()
 ## ![Initialize]
 
 # Main loop:
@@ -219,9 +228,22 @@ while robot.step(timeStep) != -1:
     roll, pitch, heading = IMUsensor.getRollPitchYaw()
     xpos, altitude , zpos = GPSsensor.getValues()
     roll_vel, bleh, pitch_vel = GYROsensor.getValues()
+    time += tsp
 
+    ## [Publish true robot position]
+    # true_pos.vector = Vector3(xpos, altitude , zpos)
+    # true_pos.header.stamp.secs = time
+    true_pos = Quaternion(xpos, altitude , zpos, time)
+    true_pos_pub.publish(true_pos)
+    ## ![Publish true robot position]
+
+    ## [Publish sensors position]
     robot_pose = addNoise((xpos, altitude , zpos), robot_pose)
-    pose.vector = robot_pose
+    # pose.vector = robot_pose
+    # pose.header.stamp.secs = time
+    pose = Quaternion(robot_pose[0], robot_pose[1], robot_pose[2], time)
+    path_pub.publish(pose)
+    ## ![Publish sensors position]
 
     ##[Derivate position for speed]
     littleTimeStep = timeStep/1000.0
@@ -265,7 +287,7 @@ while robot.step(timeStep) != -1:
     radcoeff = 180.0/math.pi
     scaling = -1
 
-    imu_pub.publish(Vector3(roll*radcoeff*scaling,pitch*radcoeff*scaling,heading*radcoeff*scaling))
+    imu_pub.publish(Vector3((roll+initials[0])*radcoeff*scaling, (pitch+initials[1])*radcoeff*scaling, (heading+initials[2])*radcoeff*scaling))
     speed_pub.publish(Vector3(math.cos(heading)*xSpeed*-1+math.sin(heading)*zSpeed*-1,ySpeed,math.sin(heading)*xSpeed+math.cos(heading)*zSpeed))
 
     velocity_pub.publish(bleh)
