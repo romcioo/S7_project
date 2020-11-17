@@ -306,10 +306,10 @@ while robot.step(timeStep) != -1:
     rl_wheel=4*drive+4*side
     rr_wheel=4*drive-4*side
 
-    front_left_motor.setVelocity(clamp(front_left_motor_input,-clampval,clampval))#positive is up  #0.44467908653
-    front_right_motor.setVelocity(clamp(-front_right_motor_input,-clampval,clampval))#negative is up #0.44616503673
-    rear_left_motor.setVelocity(clamp(-rear_left_motor_input,-clampval,clampval))#negative is up     #0.42589835641
-    rear_right_motor.setVelocity(clamp(rear_right_motor_input,-clampval,clampval))#positive is up  #0.42744959936
+    front_left_motor.setVelocity(-clampval)#positive is up  #0.44467908653
+    front_right_motor.setVelocity(clampval)#negative is up #0.44616503673
+    rear_left_motor.setVelocity(clampval)#negative is up     #0.42589835641
+    rear_right_motor.setVelocity(-clampval)#positive is up  #0.42744959936
 
     FL_wheel.setVelocity(fl_wheel)
     FR_wheel.setVelocity(fr_wheel)
