@@ -91,6 +91,7 @@ initials = [0, 0, 0] # initial orientation
 # get the time step of the current world.
 timeStep = int(robot.getBasicTimeStep()) # get the time step in milliseconds
 tsp = timeStep/1000.0 # time step in seconds
+thrust = 10000/2
 
 # Get and enable devices.
 rospy.init_node('python_submarine_controller', anonymous=True) # node is called 'python_webots_controller'
@@ -169,6 +170,9 @@ zpos_old = zpos
 heading_msg = Vector3(0,0,0)
 
 pose = Quaternion()
+
+radcoeff = 180.0/math.pi
+scaling = -1
 ## ![Initialize]
 
 # Main loop:
@@ -203,11 +207,6 @@ while robot.step(timeStep) != -1:
     zpos_old=zpos
     ##[Update position]
 
-    fl_wheel=0
-    fr_wheel=0
-    rl_wheel=0
-    rr_wheel=0
-
     ## [Send the camera images to ros]
     ## Now we send some things to ros BELOW
     camera_image_msg = Image()
@@ -231,9 +230,6 @@ while robot.step(timeStep) != -1:
     rearcamera_pub.publish(rearcamera_image_msg)
     ## ![Send the camera images to ros]
 
-    radcoeff = 180.0/math.pi
-    scaling = -1
-
     imu_pub.publish(Vector3((roll+initials[0])*radcoeff*scaling, (pitch+initials[1])*radcoeff*scaling, (heading+initials[2])*radcoeff*scaling))
     speed_pub.publish(Vector3(math.cos(heading)*xSpeed*-1+math.sin(heading)*zSpeed*-1,ySpeed,math.sin(heading)*xSpeed+math.cos(heading)*zSpeed))
 
@@ -248,10 +244,10 @@ while robot.step(timeStep) != -1:
     rl_wheel=4*drive+4*side
     rr_wheel=4*drive-4*side
 
-    front_left_motor.setVelocity(-clampval)#positive is up  #0.44467908653
-    front_right_motor.setVelocity(clampval)#negative is up #0.44616503673
-    rear_left_motor.setVelocity(clampval)#negative is up     #0.42589835641
-    rear_right_motor.setVelocity(-clampval)#positive is up  #0.42744959936
+    front_left_motor.setVelocity(-thrust)#positive is up  #0.44467908653
+    front_right_motor.setVelocity(thrust)#negative is up #0.44616503673
+    rear_left_motor.setVelocity(thrust)#negative is up     #0.42589835641
+    rear_right_motor.setVelocity(-thrust)#positive is up  #0.42744959936
 
     FL_wheel.setVelocity(fl_wheel)
     FR_wheel.setVelocity(fr_wheel)
