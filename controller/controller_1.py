@@ -6,7 +6,6 @@ import math
 import time
 import rospy
 import os
-# import time
 
 from geometry_msgs.msg import Vector3
 from geometry_msgs.msg import Quaternion
@@ -24,28 +23,21 @@ def headingCallback(msg):
     pass
 ##![Callback]
 
-def clamp(value, low, high):
-    if value < low:
-        return low
-    elif value > high:
-        return high
-    return value
-
 def side_sign(angle, front):
-    if angle < 0:
-        side = -1
+    if angle < 0: # if the angle is negative
+        side = -1 # turn right
     else:
         side = 1
 
-    if front:
-        side = -side
+    if front: # if it's going backwards
+        side = -side # change orientation
 
     return side
 
 ## [Drive - Side]
-def drive_side(msg):
-    angle = msg.y
-    distance = msg.x
+def drive_side(msg): # return the drive and side parameters
+    angle = msg.y # get the heading angle
+    distance = msg.x # get the distance to the goal
 
     ##[Control drive]
     if abs(angle) <= math.pi/2: # ahead of the robot
@@ -94,21 +86,14 @@ def addNoise(real_point, robot_pose):
 # create the Robot instance.
 robot = Robot()
 
-pitch_disturbance = 0
-roll_disturbance = 0
-yaw_disturbance = 0
-
-initials = [0, 0, 0]
+initials = [0, 0, 0] # initial orientation
 
 # get the time step of the current world.
-timeStep = int(robot.getBasicTimeStep())
-# tsp = rospy.Time()
-tsp = timeStep/1000.0
-# print("Time Step is: "+str(timeStep))
+timeStep = int(robot.getBasicTimeStep()) # get the time step in milliseconds
+tsp = timeStep/1000.0 # time step in seconds
 
 # Get and enable devices.
 rospy.init_node('python_submarine_controller', anonymous=True) # node is called 'python_webots_controller'
-# rospy.loginfo("Loading Webots Controller")
 
 ##[Publishers]
 imu_pub = rospy.Publisher('imuValues', Vector3, queue_size=1000)
@@ -133,6 +118,12 @@ GPSsensor.enable(timeStep)
 
 GYROsensor = robot.getGyro("gyro")
 GYROsensor.enable(timeStep)
+
+camera = robot.getCamera("camera")
+camera.enable(timeStep)
+
+rearcamera = robot.getCamera("rearcamera")
+rearcamera.enable(timeStep)
 ##[Sensors]
 
 ##[set robot initial values]
@@ -180,44 +171,18 @@ k_vertical_d = 1000
 
 robot.step(timeStep)
 xpos, altitude , zpos = GPSsensor.getValues()
-# true_pos_vector = Vector3(xpos, altitude, zpos)
-# true_pos = Quaternion()
-# true_pos.vector = true_pos_vector
-time = 0
-# true_pos.header.stamp.secs = time
+time = 0 # initial time
 true_pos = Quaternion(xpos, altitude, zpos, time)
 robot_pose = (xpos, altitude, zpos)
-# true_pos_pub.publish(true_pos)
 xpos_old = xpos
 altitude_old = altitude
 zpos_old = zpos
 
-"""# drone_mode = True
-# atache_mode = False
-# car_mode = False
-# follow_mode = False"""
-altitude_bool = False
-angle_dist = 0.785398
-angle_lock = -2.0944
-
-clampval = 10000
-
-camera = robot.getCamera("camera")
-camera.enable(timeStep)
-
-rearcamera = robot.getCamera("rearcamera")
-rearcamera.enable(timeStep)
-
-lock_on = 10
-front_left_motor_input = lock_on*k_vertical_thrust
-front_right_motor_input = lock_on*k_vertical_thrust
-rear_left_motor_input = lock_on*k_vertical_thrust
-rear_right_motor_input = lock_on*k_vertical_thrust
 ##![Declare]
 
 ## [Initialize]
 heading_msg = Vector3(0,0,0)
-# robot_pose = (0,0,0)
+
 pose = Quaternion()
 ## ![Initialize]
 
@@ -228,28 +193,23 @@ while robot.step(timeStep) != -1:
     roll, pitch, heading = IMUsensor.getRollPitchYaw()
     xpos, altitude , zpos = GPSsensor.getValues()
     roll_vel, bleh, pitch_vel = GYROsensor.getValues()
-    time += tsp
+    time += tsp # time on this iteration
 
     ## [Publish true robot position]
-    # true_pos.vector = Vector3(xpos, altitude , zpos)
-    # true_pos.header.stamp.secs = time
     true_pos = Quaternion(xpos, altitude , zpos, time)
     true_pos_pub.publish(true_pos)
     ## ![Publish true robot position]
 
     ## [Publish sensors position]
     robot_pose = addNoise((xpos, altitude , zpos), robot_pose)
-    # pose.vector = robot_pose
-    # pose.header.stamp.secs = time
     pose = Quaternion(robot_pose[0], robot_pose[1], robot_pose[2], time)
     path_pub.publish(pose)
     ## ![Publish sensors position]
 
     ##[Derivate position for speed]
-    littleTimeStep = timeStep/1000.0
-    xSpeed = (xpos-xpos_old)/littleTimeStep
-    ySpeed = (altitude-altitude_old)/littleTimeStep
-    zSpeed = (zpos-zpos_old)/littleTimeStep
+    xSpeed = (xpos-xpos_old)/tsp
+    ySpeed = (altitude-altitude_old)/tsp
+    zSpeed = (zpos-zpos_old)/tsp
     ##[Derivate position for speed]
 
     ##[Update position]
@@ -263,6 +223,7 @@ while robot.step(timeStep) != -1:
     rl_wheel=0
     rr_wheel=0
 
+    ## [Send the camera images to ros]
     ## Now we send some things to ros BELOW
     camera_image_msg = Image()
     camera_image_msg.width = 320
@@ -283,6 +244,7 @@ while robot.step(timeStep) != -1:
     rearcamera_image_msg.step = 1280
     rearcamera_image_msg.data = rearcamera.getImage()
     rearcamera_pub.publish(rearcamera_image_msg)
+    ## ![Send the camera images to ros]
 
     radcoeff = 180.0/math.pi
     scaling = -1
@@ -292,11 +254,6 @@ while robot.step(timeStep) != -1:
 
     velocity_pub.publish(bleh)
 
-    # if logger==True:
-    #     f.write(str(xpos)+","+str(altitude)+","+str(zpos)+"\n")
-    """
-    Here it goes all the modes
-    """
     ##[Control drive]
     drive, side = drive_side(heading_msg)
     ##![Control drive]
