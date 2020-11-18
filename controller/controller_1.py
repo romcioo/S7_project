@@ -154,21 +154,6 @@ RL_wheel.setVelocity(0.0)
 RR_wheel.setVelocity(0.0)
 ##![set robot initial values]
 
-##[Controller constants]
-k_roll_p = 600         # P constant of the roll PID.
-k_pitch_p = 600       # P constant of the pitch PID.
-k_yaw_p = 500
-k_roll_d = 800
-k_pitch_d = 800
-k_yaw_d = 300
-
-target_altitude = 9.0
-k_vertical_thrust = 398.3476#187.28#592.2569#398.3476#327.3495#128.1189 # with this thrust, the drone lifts.
-#k_vertical_offset = 0.1   # Vertical offset where the robot actually targets to stabilize itself.
-k_vertical_p = 300       # P constant of the vertical PID.
-k_vertical_d = 1000
-##![Controller constants]
-
 robot.step(timeStep)
 xpos, altitude , zpos = GPSsensor.getValues()
 time = 0 # initial time
