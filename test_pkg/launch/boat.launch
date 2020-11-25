@@ -6,13 +6,13 @@
      output="screen">
    </node>
 
-<!--   <node
+   <node
      pkg="globlaplannerv2"
      type="globalPlanner.py"
      name="globalPlanner"
      output="screen">
    </node>
--->
+
 
    <node
      pkg="test_pkg"

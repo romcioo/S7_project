@@ -9,14 +9,14 @@ echo im good
 
 
 cd
-./webots/webots --mode=realtime /home/$USER/underdasea/worlds/worldhull1_1propeller_boundary_ontop.wbt
+./webots/webots --mode=run /home/$USER/underdasea/worlds/worldhull1_1propeller_boundary_onside.wbt
 
 #cd 
 #cd Documents/MATLAB/
 #matlab -r 'try evaluationFunction("name1.txt"); catch; end; quit'
 
 #cd 
-#./webots/webots --mode=run /home/$USER/underdasea/worlds/worldhull1_2propeller_boundary_onside.wbt
+./webots/webots --mode=run /home/$USER/underdasea/worlds/worldhull1_2propeller_boundary_onside.wbt
 
 #cd 
 #cd Documents/MATLAB/

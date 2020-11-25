@@ -9,7 +9,6 @@
 #include <random>
 #include <math.h>
 #include <stdlib.h>
-#include <algorithm>
 /*!Include!*/
 
 /*Declare*/
@@ -19,11 +18,6 @@ void globalCallback(const geometry_msgs::Quaternion::ConstPtr& msg);
 extern geometry_msgs::Quaternion global_position = geometry_msgs::Quaternion();
 void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg);
 extern geometry_msgs::Vector3 imu = geometry_msgs::Vector3();
-void row1Callback(const geometry_msgs::Vector3::ConstPtr& msg);
-void row2Callback(const geometry_msgs::Vector3::ConstPtr& msg);
-void row3Callback(const geometry_msgs::Vector3::ConstPtr& msg);
-extern double rotationMatrix[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
-extern double rM[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
 
 // geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point);
 std_msgs::Bool reachedQ(geometry_msgs::Vector3 objective, geometry_msgs::Quaternion position);
@@ -48,9 +42,6 @@ int main(int argc, char **argv) {
   ros::Subscriber objective_sub = n.subscribe("goal", 1000, objectiveCallback);
   ros::Subscriber global_position_sub = n.subscribe("path", 1000, globalCallback);
   ros::Subscriber imu_sub = n.subscribe("imuValues", 1000, imuCallback);
-  ros::Subscriber row1_sub = n.subscribe("row1",2,row1Callback);
-  ros::Subscriber row2_sub = n.subscribe("row2",2,row2Callback);
-  ros::Subscriber row3_sub = n.subscribe("row3",2,row3Callback);
   /*!Subscribers!*/
 
   ros::Rate loop_rate(50); // time delay in Hz (10Hz)
@@ -60,8 +51,6 @@ int main(int argc, char **argv) {
   std_msgs::Bool reached;
   geometry_msgs::Vector3 heading = geometry_msgs::Vector3();
   double initial_rotation[3] = {0,0,0};
-  //double rM[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
-  //double rotationMatrix[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
   /*!Declare!*/
 
   while (ros::ok()) {
@@ -96,34 +85,6 @@ void globalCallback(const geometry_msgs::Quaternion::ConstPtr& msg) {
 void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg) {
   imu = *msg;
 }
-
-void row1Callback(const geometry_msgs::Vector3::ConstPtr& msg) {
-	geometry_msgs::Vector3 v = *msg;
-	rM[0][0] = v.x;
-	rM[0][1] = v.y;
-	rM[0][2] = v.z;
-}
-
-void row2Callback(const geometry_msgs::Vector3::ConstPtr& msg) {
-	geometry_msgs::Vector3 v = *msg;
-	rM[1][0] = v.x;
-	rM[1][1] = v.y;
-	rM[1][2] = v.z;
-}
-
-void row3Callback(const geometry_msgs::Vector3::ConstPtr& msg) {
-	geometry_msgs::Vector3 v = *msg;
-	rM[2][0] = v.x;
-	rM[2][1] = v.y;
-	rM[2][2] = v.z;
-	
-	//rotationMatrix[][] = rM[][];
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			rotationMatrix[i][j] = rM[i][j];
-		}
-	}
-}
 /*!Get ROS information into main!*/
 
 // geometry_msgs::Vector3Stamped addNoise(geometry_msgs::Vector3Stamped point) { // add noise to the position
@@ -153,8 +114,37 @@ void head(double initial[], geometry_msgs::Quaternion position, geometry_msgs::V
   geometry_msgs::Vector3 pos;
   double angle;
   /*!Declare!*/
-  
+
+  double roll = imu.x + initial[0];
+  double pitch = imu.y + initial[1];
+  double yaw = imu.z + initial[2];
+  double pi = 2*acos(0.0);
+
   geometry_msgs::Vector3 pub_imu;
+  pub_imu.x = roll;
+  pub_imu.y = yaw;
+  pub_imu.z = pitch;
+  // global_imu_pub.publish(pub_imu);
+
+  /*Matrix to rotate on Euler angles*/
+  double rotation_matrix[3][3] = {{cos(roll)*cos(pitch) - sin(roll)*cos(yaw)*sin(pitch),
+    -cos(roll)*sin(pitch) - sin(roll)*cos(yaw)*cos(pitch),
+    sin(roll)*sin(yaw)},
+    {sin(roll)*cos(pitch) + cos(roll)*cos(yaw)*sin(pitch),
+    -sin(roll)*sin(pitch) + cos(roll)*cos(yaw)*cos(pitch),
+    -cos(roll)*sin(yaw)},
+    {sin(yaw)*sin(pitch), sin(yaw)*cos(pitch), cos(yaw)}};
+    
+    /*double rotation_matrix[3][3] = {{cos(yaw)*cos(pitch) - cos(roll)*sin(yaw)*sin(pitch),
+  cos(yaw)*sin(pitch) + cos(roll)*cos(pitch)*sin(yaw),
+  sin(yaw)*sin(roll)},
+  {-sin(yaw)*cos(pitch) - cos(roll)*sin(pitch)*cos(yaw),
+  -sin(yaw)*sin(pitch) + cos(roll)*cos(pitch)*cos(yaw),
+  cos(yaw)*sin(roll)},
+  {sin(roll)*sin(pitch),
+  -sin(roll)*cos(pitch),
+  cos(roll)}};*/
+  /*!Matrix to rotate on Euler angles!*/
 
   pos = geometry_msgs::Vector3();
   pos.x = position.x;
@@ -163,7 +153,7 @@ void head(double initial[], geometry_msgs::Quaternion position, geometry_msgs::V
 
   /*Get vector rotated*/
   subtract(objective, pos, diff);
-  multiply(rotationMatrix, diff, diff_rot);
+  multiply(rotation_matrix, diff, diff_rot);
   /*Get vector rotated*/
 
   angle = atan2(-diff_rot[2],diff_rot[0]); // angle
@@ -172,7 +162,7 @@ void head(double initial[], geometry_msgs::Quaternion position, geometry_msgs::V
   	angle += 2*pi;
   }*/
   heading.y = angle;
-  heading.x = std::sqrt(pow(diff_rot[0],2) + pow(diff_rot[2],2));
+  heading.x = std::sqrt(pow(diff[1],2) + pow(diff[2],2));
 }
 
 void multiply(double trans[3][3], double point[3], double result[3]) { // Multiply a [3x3] matrix by [3x1]
