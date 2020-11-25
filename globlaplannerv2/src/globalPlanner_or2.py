@@ -103,15 +103,15 @@ def rndWalk():
     global edge, radii, degrees, position
     turnTheta = 90*math.pi/180
     if edge == False:
-        z,y = pol2cart(turnTheta,radii)
+        x,y = pol2cart(turnTheta,radii)
     else:
         degrees = degrees + 33
         turnTheta = degrees * math.pi /180
-        z,y = pol2cart(turnTheta,radii)
+        x,y = pol2cart(turnTheta,radii)
         edge = False
-    z += position[2]
+    x += position[0]
     y += position[1]
-    return position[0],y,z
+    return x,y,position[2]
 
 #rng Turn
 def rndWalkRngTurn():
@@ -119,20 +119,20 @@ def rndWalkRngTurn():
     radii = 2#10
     degrees  = 0
     turnTheta = 0
-    z,y = 0, 0
+    x,y = 0, 0
     now = time.time()
     elapsed = now - rngTime
     if edge == True and elapsed >  60:
         degrees = degrees + random.randint(1,40)
         turnTheta = degrees * math.pi /180
-        z,y = pol2cart(turnTheta,radii)
+        x,y = pol2cart(turnTheta,radii)
         edge = False
         rngTime = time.time()
     else:
-        z,y = pol2cart(turnTheta,radii)
-    z += position[2]
+        x,y = pol2cart(turnTheta,radii)
+    x += position[0]
     y += position[1]
-    return position[0],y,z
+    return x,y,position[2]
     
 def reseting():
 	x,y,z = rndWalkRngTurn()
@@ -162,7 +162,7 @@ def mainGlobalPlan():
     #rospy.loginfo(type(time))
     t = 0
     reset = False
-    counter = 10
+    counter = 1
     #n = 1
     #setupFile(n)
     rospy.loginfo("runnings")
@@ -185,71 +185,70 @@ def mainGlobalPlan():
         #follow ref. list
         data = False
         navigationFunc = True
-        if t - counter >= 10:
-            #rospy.loginfo(counter)
-            if data == True:
-	            csv_file = refListPath + "refList1.csv"
-	            with open(csv_file, 'wb') as csv_file:
-	                for line in csv_file:
-	                    line = line.strip('\n')
-	                    #print(line)
-	                    coord = line.split(' ') # take the pickled obj
-	                    x_coord = coord[0]
-	                    y_coord = coord[1]
-	                    z_coord = coord[2]
-	                    #print("x coord: {}   y coord: {}    z z_coord: {}").format(x_coord,y_coord,z_coord)
-	                    #to localPlanner returns points that has been missing
-	                    while visitedBool == False:
-	                        goalPoint = Vector3()
-	                        goalPoint.x = float(x_coord)
-	                        goalPoint.y = float(y_coord)
-	                        goalPoint.z = float(z_coord)
-	                        pub_goal.publish(goalPoint)
-	                        sleep.sleep()
-	                    visitedBool = False
+        if counter >= 10:
+		    if data == True:
+		        csv_file = refListPath + "refList1.csv"
+		        with open(csv_file, 'wb') as csv_file:
+		            for line in csv_file:
+		                line = line.strip('\n')
+		                #print(line)
+		                coord = line.split(' ') # take the pickled obj
+		                x_coord = coord[0]
+		                y_coord = coord[1]
+		                z_coord = coord[2]
+		                #print("x coord: {}   y coord: {}    z z_coord: {}").format(x_coord,y_coord,z_coord)
+		                #to localPlanner returns points that has been missing
+		                while visitedBool == False:
+		                    goalPoint = Vector3()
+		                    goalPoint.x = float(x_coord)
+		                    goalPoint.y = float(y_coord)
+		                    goalPoint.z = float(z_coord)
+		                    pub_goal.publish(goalPoint)
+		                    sleep.sleep()
+		                visitedBool = False
 
 
-	        #Generate path
-            if navigationFunc == True:
-	            ranWalk = False
-	            rngWalk = True
-	            if rngWalk == True:
-	                x,y,z = rndWalkRngTurn()
-	                goalPoint = Vector3()
-	                goalPoint.x = float(x)
-	                goalPoint.y = float(y)
-	                goalPoint.z = float(z)
-	                pub_goal.publish(goalPoint)
-	                egde = False
-	                sleep.sleep()
-	            if ranWalk == True:
-	                x,y,z = rndWalk()
-	                goalPoint = Vector3()
-	                goalPoint.x = float(x)
-	                goalPoint.y = float(y)
-	                goalPoint.z = float(z)
-	                pub_goal.publish(goalPoint)
-	                egde = False
-	                sleep.sleep()
-	            
-	            #rospy.loginfo(time, initialTime)    
-	            if initialTime == 0:
-	                #rospy.loginfo("in")
-	                initialTime = t
-	            spentSecs = t - initialTime
+		    #Generate path
+		    if navigationFunc == True:
+		        ranWalk = False
+		        rngWalk = True
+		        if rngWalk == True:
+		            x,y,z = rndWalkRngTurn()
+		            goalPoint = Vector3()
+		            goalPoint.x = float(x)
+		            goalPoint.y = float(y)
+		            goalPoint.z = float(z)
+		            pub_goal.publish(goalPoint)
+		            egde = False
+		            sleep.sleep()
+		        if ranWalk == True:
+		            x,y,z = rndWalk()
+		            goalPoint = Vector3()
+		            goalPoint.x = float(x)
+		            goalPoint.y = float(y)
+		            goalPoint.z = float(z)
+		            pub_goal.publish(goalPoint)
+		            egde = False
+		            sleep.sleep()
+		        
+		        #rospy.loginfo(time, initialTime)    
+		        if initialTime == 0:
+		            #rospy.loginfo("in")
+		            initialTime = t
+		        spentSecs = t - initialTime
 
 
 
-	        #close down webots
-            nomoves = False
-            if nomoves == True:
-	            print("Quiting")
-	            rospy.spin()
-	            os.kill(0,True)
-            counter = t
-    #		"""if spentSecs >= 3600*24:
-    #			n += 1
-    #			break"""
+		    #close down webots
+		    nomoves = False
+		    if nomoves == True:
+		        print("Quiting")
+		        rospy.spin()
+		        os.kill(0,True)
+			counter = 1
+#		"""if spentSecs >= 3600*24:
+#			n += 1
+#			break"""
         #rospy.loginfo(time)
         if t  >= 5*60:#3600*24:
             # rospy.loginfo("ok")
@@ -264,7 +263,7 @@ def mainGlobalPlan():
             #setupFile(n)
             #break
             
-        #counter += 1
+        counter += 1
 		
         pass
 
