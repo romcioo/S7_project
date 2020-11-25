@@ -1,0 +1,31 @@
+ <launch>    
+   <node
+     pkg="test_pkg"
+     type="test_pkg"
+     name="local_planner"
+     output="screen">
+   </node>
+
+<!--   <node
+     pkg="globlaplannerv2"
+     type="globalPlanner.py"
+     name="globalPlanner"
+     output="screen">
+   </node>
+-->
+
+   <node
+     pkg="test_pkg"
+     type="autoworld.sh"
+     name="autoworld"
+     output="screen"
+     />
+
+   <!--topic remapping example-->
+<!--
+<remap from="/image_rect" to="/camera/depth/image"/>
+<remap from="/points" to="/camera/depth/points"/>
+<remap from="/camera_info" to="/camera/depth/camera_info"/>
+-->
+
+</launch>
