@@ -5,7 +5,9 @@
 
 %%   
 clear; close all;
-str = ["Stupid_Hull_Base_1_1"; "Stupid_Hull_Base_1_2" ; "Stupid_Hull_Base_2_1"; "Stupid_Hull_Base_2_2"; "Stupid_Hull_Base_3_1"; "Stupid_Hull_Base_3_2"];
+str = ["Stupid_Hull_Base_without_1_1"; "Stupid_Hull_Base_without_1_2" ; "Stupid_Hull_Base_without_2_1"; "Stupid_Hull_Base_without_2_2"; "Stupid_Hull_Base_without_3_1"; "Stupid_Hull_Base_without_3_2";
+       "Stupid_Hull_Base_1_1"; "Stupid_Hull_Base_1_2"; "Stupid_Hull_Base_2_1"; "Stupid_Hull_Base_2_2"; "Stupid_Hull_Base_3_1"; "Stupid_Hull_Base_3_2"];
+
 
 for i = 1:size(str)
    
@@ -18,11 +20,11 @@ for i = 1:size(str)
     trianglesRotX = rotate_stl(triangles,'x',90);
 
     trianglesRotY = rotate_stl(trianglesRotX,'y',180);
-    heigth = 5;
+    height = 5;
 
-    tic;[moveList,z_slices]=slice_stl_create_path(trianglesRotY,heigth);toc;
+    tic;[moveList,z_slices]=slice_stl_create_path(trianglesRotY,height);toc;
 
-    fprintf("Silce done");
+    fprintf("Slice done");
 
     tic;list_ref(moveList,z_slices,s);toc;
 

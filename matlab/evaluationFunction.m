@@ -20,7 +20,7 @@ function evaluationFunction(file)
     end
     % [!Draw the points where the robot has gone through!]
     hold off % stop to hold the plot
-    fn = sprintf("dedBasil%d.fig",fileNum); % create the name file
+    fn = sprintf("Navigation_Visualisation_%d.fig",fileNum); % create the name file
     saveas(fig,fn); % save the figure
 end
 
