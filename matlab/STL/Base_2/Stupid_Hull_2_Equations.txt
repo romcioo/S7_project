@@ -1,34 +1,3 @@
-﻿"Length"=500
-"D1@Sketch1" = "Length" - "Length" * 0.1
-"Width"=60
-"D2@Sketch1"= "Width"
-"D3@Sketch1"="Length"/50
-"D4@Sketch1"="Length"/10
-"D5@Sketch1"="Length"/46.03708
-"D6@Sketch1"="Width"/3.51128
-"D7@Sketch1"="Length"/47.28355
-"Hight"=50
-"D1@Sketch2"="Hight"
-"D2@Sketch2"="Width"
-"D4@Sketch2"="Width"*(1/3)
-"D1@Boss-Extrude1"="Length"-"Length"*(0.1571+0.1714)
-"D1@Sketch3"="Length"*0.1571
-"D2@Sketch3"="Width"*0.55
-"D4@Sketch3"="Length"*0.06
-"D5@Sketch3"="Length"*0.004
-"D1@Sketch4"="Hight"*0.2857
-"D2@Sketch4"="Hight"*0.1094
-"D3@Sketch4"="Hight"*0.18
-"D4@Sketch4"="Hight"*0.1405
-"D5@Sketch4"="Hight"*0.1878
-"D1@Sketch7"="Length"*0.1714
-"D2@Sketch7"="Length"*(0.1714/1.2)
-"D3@Sketch7"="Length"*0.07308
-"D5@Sketch7"="Length"*0.02146
-"D1@Sketch8"="Hight"*0.6386
-"D9@Sketch8"="Hight"*0.06980
-"D10@Sketch8"="Hight"*0.03076
-"D11@Sketch8"="Length"*0.02967
-"D12@Sketch8"="Hight"*0.1045
-"D13@Sketch8"="Hight"*0.03318
-"D14@Sketch8"="Hight"*0.2425
+version https://git-lfs.github.com/spec/v1
+oid sha256:7939db6026e5c023178607426208a75256fa86730106413658a08b4474bc7e43
+size 1010

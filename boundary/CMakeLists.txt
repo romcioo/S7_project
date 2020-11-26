@@ -1,26 +1,3 @@
-cmake_minimum_required(VERSION 3.0.2)
-project(boundary)
-
-
-find_package(catkin REQUIRED COMPONENTS rospy roscpp std_msgs geometry_msgs sensor_msgs message_generation tf)
-
-#catkin_package()
-#catkin_python_setup()
-
-
-
-catkin_package(
-#  INCLUDE_DIRS include
-#   LIBRARIES webots_ros
-   CATKIN_DEPENDS rospy 
-#  DEPENDS system_lib
-)
-
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
-
-install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-catkin_install_python(PROGRAMS src/boundary.py
-        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+version https://git-lfs.github.com/spec/v1
+oid sha256:9888a56170e3d0502366dbf534ee46895021c84fac8d48b2746f887d9ad57e23
+size 581

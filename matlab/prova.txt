@@ -1,4 +1,3 @@
-Stupid_Hull_Base_1_1.STL
-3e4,3e4,3e4,0
-1
-0,0,0
+version https://git-lfs.github.com/spec/v1
+oid sha256:065a95ace31e90424d50f323719b29d6e6a3cbb5ba208e62a1f2498c8e32c73b
+size 49

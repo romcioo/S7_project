@@ -1,1 +1,3 @@
-This thing was created by Thingiverse user guppyk, and is licensed under cc.
+version https://git-lfs.github.com/spec/v1
+oid sha256:a80d769681fa9dd1f04fc268d1d1f3fd81b61d294380ca370fdc44200730e77b
+size 76

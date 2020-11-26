@@ -1,17 +1,3 @@
-﻿"Width"=60
-"D1@Sketch1"="Width"
-"Hight"=50
-"D2@Sketch1"="Hight"
-"D3@Sketch1"="Width"*(2/3)
-"D4@Sketch1"="Width"*0.1
-"D5@Sketch1"="Hight"*0.05
-"D6@Sketch1"="Hight"*(1/3)
-"Lenght"=500
-"D1@Boss-Extrude1"= "Lenght" - "Lenght" * 0.1
-"D1@Sketch2"="Lenght"*0.075
-"D1@Sketch3"="Lenght"*0.075
-"D2@Sketch3"="Lenght"/50
-"D3@Sketch3"="Hight"/5
-"D1@Sketch4"="Lenght"*0.1
-"D2@Sketch4"="Lenght"/125
-"D3@Sketch4"="Lenght"/(33+(1/3))
+version https://git-lfs.github.com/spec/v1
+oid sha256:c048bd14012295ebfafc571270925df0b906e1e67df076a73b61d5a5985113e2
+size 454
