@@ -4,7 +4,8 @@ function A = coveredArea(fileName)
     tic
     fileData = importdata(fileName);
     toc
-    data = fileData.data(1:1000,:);
+%     data = fileData.data(1:1000,:);
+    data = fileData.data;
     data = data(3:size(data,1),:);
     P = data(:,1:3);
     t = data(:,4);
