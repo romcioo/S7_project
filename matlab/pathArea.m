@@ -18,6 +18,7 @@ for i = 1:size(T,1)/2 % go through all the sections of the path
         matIndex = max(max(tri));
         matIndex = int16(matIndex/2);
         rotation = mat(matIndex,:); % get the angles to use
+        rotation = reshape(rotation,[3,3]);
         PR = rotateE(rotation,P(1:2*(i+1),:),0); % rotate the points
         po1 = PR(rect1,:); % get points of the current quadrilateral
         poly1 = polyshape(po1(:,1),po1(:,2)); % create quadrilateral

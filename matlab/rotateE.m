@@ -1,8 +1,8 @@
-function rotPoints = rotateE(mat,points,reverse)
+function rotPoints = rotateE(rotMat,points,reverse)
 if reverse
-    mat = mat';
+    rotMat = rotMat';
 end
 rotPoints = zeros(size(points));
 for i = 1:size(points,1) % for each point
-    rotPoints(i,:) = (mat*points(i,:)')'; % convert points
+    rotPoints(i,:) = (rotMat*points(i,:)')'; % convert points
 end
