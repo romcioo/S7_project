@@ -1,8 +1,9 @@
-function area = pathArea(TR,mat)
+function [area,time,overlap] = pathArea(TR,mat,t)
 P = TR.Points; % get points from the triangulation
 T = TR.ConnectivityList; % get triangles from the triangulation
 
 area = zeros(1,size(T,1)/2); % will be the accumulated area on each state
+overlap = zeros(1,size(T,1)/2);
 
 for i = 1:size(T,1)/2 % go through all the sections of the path
     tri = T(2*i-1:2*i,:); % get the triangles of the section
@@ -22,6 +23,7 @@ for i = 1:size(T,1)/2 % go through all the sections of the path
         PR = rotateE(rotation,P(1:2*(i+1),:),0); % rotate the points
         po1 = PR(rect1,:); % get points of the current quadrilateral
         poly1 = polyshape(po1(:,1),po1(:,2)); % create quadrilateral
+        initialArea = poly1.area;
         [av1,rng1] = averageZ(po1); % get averages
         j = 1;
         while j < i % for all the sections before the actual one
@@ -39,6 +41,9 @@ for i = 1:size(T,1)/2 % go through all the sections of the path
                j = j + 1; 
             end
         end
-        area(i) = area(i-1) + poly1.area; % next accumulated area
+        finalArea = poly1.area;
+        area(i) = area(i-1) + finalArea; % next accumulated area
+        overlap(i) = overlap(i-1) + (initialArea - finalArea);
     end
 end
+time = t(2:size(t,1),:);

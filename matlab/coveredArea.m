@@ -1,4 +1,4 @@
-function A = coveredArea(fileName)
+function [A,T,O] = coveredArea(fileName)
     warning('off','all')
     disp("read data")
     tic
@@ -18,5 +18,5 @@ function A = coveredArea(fileName)
     
     disp("Area")
     tic
-    A = pathArea(TR,mat);
+    [A,T,O] = pathArea(TR,mat,t);
     toc
