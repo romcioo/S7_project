@@ -1,16 +1,16 @@
 function evaluationFunction(file)
     filedata = importdata(file); % get the info from the .txt
-    filename = filedata.textdata{1,1}; % get the .stl file name
+%     filename = filedata.textdata{1,1}; % get the .stl file name
     fileNum = filedata.data(2,1); % get the number of the evaluation
     fig = figure; % create a figure
-    TR = stlread(filename); % read the .stl file and create a triangulation
-    TR = rotate(TR); % rotate the TR
-    trimesh(TR,'FaceColor','none','EdgeColor','k') % plot the TR with BLACK edges and NO faces
-    axis equal % make the axis have the same scaling
+    %TR = stlread(filename); % read the .stl file and create a triangulation
+    %TR = rotate(TR); % rotate the TR
+    %trimesh(TR,'FaceColor','none','EdgeColor','k') % plot the TR with BLACK edges and NO faces
+    %axis equal % make the axis have the same scaling
     %  [Have the axis labels]
-    xlabel('x')
-    ylabel('y')
-    zlabel('z')
+%     xlabel('x')
+%     ylabel('y')
+%     zlabel('z')
     %  [!Have the axis labels!]
     hold on % keep open the plot to be able to plot on top of it
     % [Draw the points where the robot has gone through]
@@ -18,6 +18,10 @@ function evaluationFunction(file)
         p = filedata.data(i,:); % get point
         plot3(p(1),p(2),p(3),'or') % plot the point in red circles
     end
+    xlabel('x')
+    ylabel('y')
+    zlabel('z')
+    axis equal % make the axis have the same scaling
     % [!Draw the points where the robot has gone through!]
     hold off % stop to hold the plot
     fn = sprintf("Navigation_Visualisation_%d.fig",fileNum); % create the name file
