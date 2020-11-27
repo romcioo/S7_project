@@ -1,4 +1,4 @@
-function area = pathArea(TR,euler)
+function area = pathArea(TR,mat)
 P = TR.Points; % get points from the triangulation
 T = TR.ConnectivityList; % get triangles from the triangulation
 
@@ -15,10 +15,10 @@ for i = 1:size(T,1)/2 % go through all the sections of the path
         end
         area(i) = preA; % and put it on the first slot of the area
     else
-        eulIndex = max(max(tri));
-        eulIndex = int16(eulIndex/2);
-        eu = euler(eulIndex,:); % get the angles to use
-        PR = rotateE(eu,P(1:2*(i+1),:),0); % rotate the points
+        matIndex = max(max(tri));
+        matIndex = int16(matIndex/2);
+        rotation = mat(matIndex,:); % get the angles to use
+        PR = rotateE(rotation,P(1:2*(i+1),:),0); % rotate the points
         po1 = PR(rect1,:); % get points of the current quadrilateral
         poly1 = polyshape(po1(:,1),po1(:,2)); % create quadrilateral
         [av1,rng1] = averageZ(po1); % get averages

@@ -7,3 +7,5 @@ function A = coveredArea(fileName)
     mat = data(5:13,:);
     
     TR = widthPath(P,0.5,mat);
+    
+    A = pathArea(TR,mat);
