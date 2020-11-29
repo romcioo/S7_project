@@ -5,7 +5,7 @@ function [A,T,O] = coveredArea(fileName)
     fileData = importdata(fileName);
     toc
 %     data = fileData.data(1:1000,:);
-    data = fileData.data;
+    data = fileData.data(1:5:end,:);
     data = data(3:size(data,1),:);
     P = data(:,1:3);
     t = data(:,4);
