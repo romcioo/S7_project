@@ -40,7 +40,7 @@ def visit(point, mat, figType):
         if figType == "plane":
             xscal = point[0] - x_bound[0]
             yscal = point[1] - y_bound[0]
-            pos = (xscal//.5, yscal//.5)
+            pos = (int(xscal//.5), int(yscal//.5))
             if mat[pos[0]][pos[1]][0] == 1:
                 mat[pos[0]][pos[1]][1] += 1
                 overlap = .5^2
