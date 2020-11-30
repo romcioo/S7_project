@@ -35,11 +35,9 @@ parfor i = 1:size(T,1)/2 % go through all the sections of the path
             [av2,rng2] = averageZ(po2); % get averages
             if abs(rng1-rng2) < .5 && abs(av1-av2) < .5 % if polygons are more or lees on the similar plane
                 poly2 = polyshape(po2(:,1),po2(:,2)); % create second polygon
-                poly1 = subtract(poly1,poly2);
-%                 poly1 = subtract(poly1,poly2); % subtract to the one looking
+                poly1 = subtract(poly1,poly2); % subtract to the one looking
             end
             if poly1.area == 0 % if the sections checked is completly overlapped
-%                 j = i; % end iteration
                 break
             end
         end
