@@ -24,7 +24,7 @@ def create(figType):
         for i in range(xstps):
             temp = []
             for j in range(ystps):
-                temp.append([False, 0])
+                temp.append([0, 0])
             visited.append(temp)
     elif figType == "cylinder":
         pass
@@ -41,11 +41,11 @@ def visit(point, mat, figType):
             xscal = point[0] - x_bound[0]
             yscal = point[1] - y_bound[0]
             pos = (xscal//.5, yscal//.5)
-            if mat[pos[0]][pos[1]][0]:
+            if mat[pos[0]][pos[1]][0] == 1:
                 mat[pos[0]][pos[1]][1] += 1
                 overlap = .5^2
             else:
-                mat[pos[0]][pos[1]][0] = True
+                mat[pos[0]][pos[1]][0] = 1
                 area = .5^2
         if figType == "cylinder":
             pass
