@@ -1,6 +1,6 @@
 #from controller import Robot
 from controller import InertialUnit
-from controller import Gyro
+from controller import Gyro, DistanceSensor, RangeFinder
 from controller import Motor, Supervisor#, Node
 import math
 import time
@@ -17,27 +17,16 @@ from std_msgs.msg import Float32, Float64MultiArray
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 
-class Quat(Quaternion):
-    def __init__(x=0, y=0, z=0, w=0):
-        super(Quat,self).__init__(x,y,z,w)
-        
-    def __mul__(self,k):
-        q = Quaternion()
-        q.x = self.x*k
-        q.y = self.y*k
-        q.z = self.z*k
-        q.w = self.w*k
-        
-        return q
+import griding
 
 ##[Functions]
 
 ##[Callback]
 def headingCallback(msg):
-    global heading_msg
-    heading_msg = msg
-    pass
-    
+	global heading_msg
+	heading_msg = msg
+	pass
+
 def finishCallback(msg):
 	global finished
 	finished = msg.data
@@ -46,65 +35,93 @@ def finishCallback(msg):
 
 ## [Drive - Side]
 def drive_side(msg):
-    angle = msg.y
-    distance = msg.x
+	angle = msg.y
+	distance = msg.x
 
-    ##[Control drive]
-    side = angle/(10*math.pi/180)
-    if abs(side) > 2:
-        side = 2*side/abs(side)
-    try:
-        drive = -(2/abs(side) - 1)
-    except:
-        drive = 0
-    if abs(drive) > 4:
-        drive = -4
+	##[Control drive]
+	side = angle/(10*math.pi/180)
+	if abs(side) > 2:
+		side = 2*side/abs(side)
+	try:
+		drive = -(2/abs(side) - 1)
+	except:
+		drive = 0
+	if abs(drive) > 4:
+		drive = -4
 
 
-    return drive, side
+	return drive, side
 ## ![Drive - Side]
 
 ## [Add noise]
 def addNoise(real_point, robot_pose):
-    return real_point
+	return real_point
 ## ![Add noise]
 
-def visitedPointCB(data, fileObject, tr):
-    x_coord = data.x
-    y_coord = data.y
-    z_coord = data.z
-    time = data.w
-    
-    s = "{},{},{},{}".format(x_coord,y_coord,z_coord,time)
-    s += mtrx2str(tr)
-    
-    msgData = s + "\n"
-    fileObject.write(msgData)
-    
+def visitedPointCB(data, fileObject, tr, area, overlap, true_pos_list):
+	x_coord = data.x
+	y_coord = data.y
+	z_coord = data.z
+	time = data.w
+
+	s = "{},{},{},{}".format(x_coord,y_coord,z_coord,time)
+	s += mtrx2str(tr)
+
+	s += "{},{},".format(area,overlap)
+	s += "{},{},{}".format(true_pos_list[0], true_pos_list[1], true_pos_list[2])
+
+	msgData = s + "\n"
+	fileObject.write(msgData)
+
 def mtrx2str(m):
-    s = ","
-    for row in m:
-        for num in row:
-            s += str(num) + ","
-    return s[:-1]
-    
+	s = ","
+	for row in m:
+		for num in row:
+			s += str(num) + ","
+	return s[:-1]
+
 def setupFile(n):
-    
-    fn = "/home/ros/Documents/my_test_project/refList/visited_point{}.txt".format(n)
-    fileObject = open(fn, 'w')
-    
-    shipFile = "text\n"
-    fileObject.write(shipFile)
-    scaleFactor = "{},{},{},{}".format(1.0,1.0,1.0,1)
-    one = ",0"
-    scaleFactor += 9*one
-    scaleFactor += "\n"
-    fileObject.write(scaleFactor)
-    serialNumber = str(n) + "\n"
-    fileObject.write(serialNumber)
-    
-    return fileObject
-        
+
+	fn = "/home/ros/Documents/my_test_project/refList/visited_point{}.txt".format(n)
+	fileObject = open(fn, 'w')
+
+	shipFile = "text"
+	f = open("/home/ros/underdasea/controllers/controller_1/fileNames.txt","r")
+	read = f.read()
+	read = read.split("\n")
+	if n <= len(read):
+		shipFile = read[n-1]
+	f.close()
+	shipFile += "\n"
+	"""with f as open("fileNames.txt","r"):
+	    read = f.read()
+	    read = read.split("\n")
+	    if n <= len(read):
+	        shipFile = read[n-1]
+	    f.close()"""
+	fileObject.write(shipFile)
+	scaleFactor = "{},{},{},{}".format(1.0,1.0,1.0,1)
+	one = ",0"
+	scaleFactor += 14*one
+	scaleFactor += "\n"
+	fileObject.write(scaleFactor)
+	serialNumber = str(n) + "\n"
+	fileObject.write(serialNumber)
+
+	return fileObject
+
+def saveMatrix(grid, n):
+	rows = len(grid)
+	cols = len(grid[0])
+
+	fn = "/home/ros/Documents/my_test_project/refList/visited_matrix{}.txt".format(n)
+	matrixFile = open(fn,"w")
+	matrixFile.write("{},{}\n".format(rows,cols))
+	for row in grid:
+		for el in row:
+			matrixFile.write("{},{}\n".format(el[0],el[1]))
+
+	matrixFile.close()
 
 ##![Functions]
 
@@ -118,9 +135,19 @@ nFile = open("/home/ros/Documents/my_test_project/refList/number.txt","r")
 n = int(nFile.readline())
 nFile.close()
 
-# get the time step of the current world.
+figs = ["plane","plane","plane","plane","plane","plane","plane","plane","plane","plane","plane","plane","plane","plane","plane","plane","plane","plane"]
+# figureTypeFile = open("","r")
+# figureType = figureTypeFile.read()
+# figureTypeFile.close()
+#
+# figureType.split("\n")
+figureType = figs[n-1]
+
+grid = griding.create(figureType)
+
+# get the time step of the current world.-
 #timeStep = int(robot.getBasicTimeStep())
-timeStep = 200
+timeStep = 5000#200
 # tsp = rospy.Time()
 tsp = timeStep/1000.0
 # print("Time Step is: "+str(timeStep))
@@ -142,6 +169,7 @@ row1_pub = rospy.Publisher("row1",Vector3,queue_size=2)
 row2_pub = rospy.Publisher("row2",Vector3,queue_size=2)
 row3_pub = rospy.Publisher("row3",Vector3,queue_size=2)
 rows = [row1_pub, row2_pub, row3_pub]
+ravin_pub = rospy.Publisher("ravin",Bool,queue_size=1)
 #n_pub = rospy.Publisher("number",Int16,queue_size=1)
 ##![Publishers]
 
@@ -162,7 +190,22 @@ GPSsensor.enable(timeStep)
 
 GYROsensor = robot.getGyro("gyro")
 GYROsensor.enable(timeStep)
+
+# ravin_RL = robot.getDistanceSensor('Rear_Left_Edge_Det')
+# print(ravin_RL)
+# ravin_RL.enable(timeStep)
+# ravin_FL = robot.getDistanceSensor('Front_Left_Edge_Det')
+# ravin_FL.enable(timeStep)
+# ravin_FR = robot.getDistanceSensor('Front_Right_Edge_Det')
+# ravin_FR.enable(timeStep)
+# ravin_RR = robot.getDistanceSensor('Rear_Right_Edge_Det')
+# ravin_RR.enable(timeStep)
 ##[Sensors]
+#ravins = []
+#ravNames = ['Rear_Left_Edge_Det', 'Front_Left_Edge_Det', 'Front_Right_Edge_Det', 'Rear_Right_Edge_Det']
+#for i in range(4):
+#	ravins.append(robot.getDistanceSensor(ravNames[i]))
+#	ravins[i].enable(timeStep)
 
 ##[set robot initial values]
 front_left_motor = robot.getMotor("front left thruster")
@@ -205,12 +248,19 @@ zpos_old = zpos
 ## [Initialize]
 heading_msg = Vector3(0,0,0)
 finished = False
+
+x_bound = [-48.7, 55.7]
+y_bound = [-16, 28.2]
+area = 0
+overlap = 0
 # robot_pose = (0,0,0)
 pose = Quaternion()
 
 thrust = 10000.0/1.5
 
 fileObject = setupFile(n)
+
+# ravinThreshold =
 ## ![Initialize]
 
 # Main loop:
@@ -221,12 +271,12 @@ while robot.step(timeStep) != -1:
 	orient = np.array(robot_node.getOrientation())
 	orient = orient.reshape(3,3)
 	tr = np.transpose(orient)
-	
+
 	for i in range(len(rows)):
-	    line = tr[i]
-	    thing = Vector3(line[0], line[1], line[2])
-	    rows[i].publish(thing)
-	
+		line = tr[i]
+		thing = Vector3(line[0], line[1], line[2])
+		rows[i].publish(thing)
+
 	#tr = tr.reshape(1,9)[0]
 	#tr_pub = Float64MultiArray()
 	#tr_pub.data = tr
@@ -239,12 +289,20 @@ while robot.step(timeStep) != -1:
 	    pitch = math.pi/2 - pitch
 	if heading < 0:
 	    heading = math.pi - heading"""
+
+	# ravin_pub.publish(ravins[1].getMaxValue())
+	# res = []
+	# for el in ravins:
+	# 	res.append(el.getValue())
+	# rospy.loginfo(res)
+
 	#pitch += math.pi/2 # maybe
 	xpos, altitude , zpos = GPSsensor.getValues()
 	roll_vel, bleh, pitch_vel = GYROsensor.getValues()
 	time = robot.getTime()
 
 	## [Publish true robot position]
+	true_pos_list = [xpos, altitude , zpos]
 	true_pos = Quaternion(xpos, altitude , zpos, time)
 	true_pos_pub.publish(true_pos)
 	## ![Publish true robot position]
@@ -253,7 +311,17 @@ while robot.step(timeStep) != -1:
 	robot_pose = addNoise((xpos, altitude , zpos), robot_pose)
 	pose = Quaternion(robot_pose[0], robot_pose[1], robot_pose[2], time)
 	path_pub.publish(pose)
-	visitedPointCB(pose, fileObject, tr)
+	thisArea, thisOverlap, grid = griding.visit(robot_pose, grid, figureType)
+	area += thisArea
+	overlap += thisOverlap
+	visitedPointCB(pose, fileObject, tr, area, overlap, true_pos_list)
+
+	edge = False
+	if xpos >= x_bound[1] or xpos <= x_bound[0]:
+		edge = True
+	if altitude >= y_bound[1] or altitude <= y_bound[0]:
+		edge = True
+	ravin_pub.publish(Bool(edge))
 	## ![Publish sensors position]
 
 	##[Derivate position for speed]
@@ -309,12 +377,15 @@ while robot.step(timeStep) != -1:
 	FR_wheel.setVelocity(fr_wheel)
 	RL_wheel.setVelocity(rl_wheel)
 	RR_wheel.setVelocity(rr_wheel)
-	
+
 	if finished:
 		#rospy.loginfo("in")
 		bool_pub = Bool()
 		time = 0
 		fileObject.close()
+
+		saveMatrix(grid,n)
+
 		n += 1
 		#fileObject = setupFile(n)
 		#n_pubs = Int16()
