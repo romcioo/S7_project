@@ -54,11 +54,11 @@ def drive_side(msg):
     if abs(side) > 2:
         side = 2*side/abs(side)
     try:
-        drive = 2/abs(side) - 1
+        drive = -(2/abs(side) - 1)
     except:
         drive = 0
-    if drive > 4:
-        drive = 4
+    if abs(drive) > 4:
+        drive = -4
 
 
     return drive, side
@@ -69,14 +69,24 @@ def addNoise(real_point, robot_pose):
     return real_point
 ## ![Add noise]
 
-def visitedPointCB(data, fileObject):
+def visitedPointCB(data, fileObject, tr):
     x_coord = data.x
     y_coord = data.y
     z_coord = data.z
     time = data.w
     
-    msgData ="{},{},{},{}\n".format(time,x_coord,y_coord,z_coord)
+    s = "{},{},{},{}".format(x_coord,y_coord,z_coord,time)
+    s += mtrx2str(tr)
+    
+    msgData = s + "\n"
     fileObject.write(msgData)
+    
+def mtrx2str(m):
+    s = ","
+    for row in m:
+        for num in row:
+            s += str(num) + ","
+    return s[:-1]
     
 def setupFile(n):
     
@@ -85,30 +95,15 @@ def setupFile(n):
     
     shipFile = "text\n"
     fileObject.write(shipFile)
-    scaleFactor = "{},{},{},{}\n".format(1.0,1.0,1.0,1)
+    scaleFactor = "{},{},{},{}".format(1.0,1.0,1.0,1)
+    one = ",0"
+    scaleFactor += 9*one
+    scaleFactor += "\n"
     fileObject.write(scaleFactor)
     serialNumber = str(n) + "\n"
     fileObject.write(serialNumber)
     
     return fileObject
-    
-def rot2quat(m):
-    if (m[2,2] < 0):
-        if m[0,0] > m[1,1]:
-            t = 1 + m[0,0] - m[1,1] - m[2,2]
-            q = Quat(t, m[0,1]+m[1,0], m[2,0]+m[0,2], m[1,2]-m[2,1])
-        else:
-            t = 1 - m[0,0] + m[1,1] - m[2,2]
-            q = Quat(m[0,1]+m[1,0], t, m[1,2]+m[2,1], m[2,0]-m[0,2])
-    else:
-        if m[0,0] < -m[1,1]:
-            t = 1 - m[0,0] - m[1,1] + m[2,2]
-            q = Quat(m[2,0]+m[0,2], m[1,2]+m[2,1], t, m[0,1]-m[1,0])
-        else:
-            t = 1 + m[0,0] + m[1,1] + m[2,2]
-            q = Quat(m[1,2]-m[2,1], m[2,0]-m[0,2], m[0,1]-m[1,0], t)
-    q *= 0.5/sqrt(t)
-    return q
         
 
 ##![Functions]
@@ -143,7 +138,10 @@ camera_pub = rospy.Publisher('python_submarine_camera_images', Image, queue_size
 rearcamera_pub = rospy.Publisher('python_submarine_rear_camera_images', Image, queue_size=10)
 true_pos_pub = rospy.Publisher('true_position', Quaternion, queue_size=1000)
 reset_pub = rospy.Publisher("reset",Bool,queue_size=2)
-trans_pub = rospy.Publisher("transMatrix",Float64MultiArray,queue_size=2)
+row1_pub = rospy.Publisher("row1",Vector3,queue_size=2)
+row2_pub = rospy.Publisher("row2",Vector3,queue_size=2)
+row3_pub = rospy.Publisher("row3",Vector3,queue_size=2)
+rows = [row1_pub, row2_pub, row3_pub]
 #n_pub = rospy.Publisher("number",Int16,queue_size=1)
 ##![Publishers]
 
@@ -223,10 +221,16 @@ while robot.step(timeStep) != -1:
 	orient = np.array(robot_node.getOrientation())
 	orient = orient.reshape(3,3)
 	tr = np.transpose(orient)
-	tr = tr.reshape(1,9)[0]
-	tr_pub = Float64MultiArray()
-	tr_pub.data = tr
-	trans_pub.publish(tr_pub)
+	
+	for i in range(len(rows)):
+	    line = tr[i]
+	    thing = Vector3(line[0], line[1], line[2])
+	    rows[i].publish(thing)
+	
+	#tr = tr.reshape(1,9)[0]
+	#tr_pub = Float64MultiArray()
+	#tr_pub.data = tr
+	#trans_pub.publish(tr_pub)
 	#robot_node = robot.getFromDef("Submarine Robot")
 	#print(robot_node)
 	"""if roll < 0:
@@ -249,7 +253,7 @@ while robot.step(timeStep) != -1:
 	robot_pose = addNoise((xpos, altitude , zpos), robot_pose)
 	pose = Quaternion(robot_pose[0], robot_pose[1], robot_pose[2], time)
 	path_pub.publish(pose)
-	visitedPointCB(pose, fileObject)
+	visitedPointCB(pose, fileObject, tr)
 	## ![Publish sensors position]
 
 	##[Derivate position for speed]
