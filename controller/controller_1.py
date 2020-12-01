@@ -48,14 +48,26 @@ def drive_side(msg):
 		drive = 0
 	if abs(drive) > 4:
 		drive = -4
+		
+	if distance <= 1.5 and abs(drive) >= 2:
+		drive = -2
 
 
 	return drive, side
 ## ![Drive - Side]
 
 ## [Add noise]
-def addNoise(real_point, robot_pose):
-	return real_point
+def addNoise(real_point):
+	x,y,z = real_point
+	
+	xz_variance = 1.02
+	y_variance = xz_variance*.5
+	
+	x += np.random.normal(loc=0, scale=xz_variance)
+	y += np.random.normal(loc=0, scale=y_variance)
+	z += np.random.normal(loc=0, scale=xz_variance)
+	
+	return x,y,z
 ## ![Add noise]
 
 def visitedPointCB(data, fileObject, tr, area, overlap, true_pos_list):
@@ -308,7 +320,7 @@ while robot.step(timeStep) != -1:
 	## ![Publish true robot position]
 
 	## [Publish sensors position]
-	robot_pose = addNoise((xpos, altitude , zpos), robot_pose)
+	robot_pose = addNoise((xpos, altitude , zpos))
 	pose = Quaternion(robot_pose[0], robot_pose[1], robot_pose[2], time)
 	path_pub.publish(pose)
 	thisArea, thisOverlap, grid = griding.visit(robot_pose, grid, figureType)
