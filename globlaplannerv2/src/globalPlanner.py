@@ -66,6 +66,11 @@ def resetCallback(msg):
 	global reset
 	reset = msg.data
 	pass
+   
+def ravinCallback(msg):
+	global ravin
+	ravin = msg.data
+	pass
     
 
 def setupFile(n):
@@ -100,39 +105,43 @@ def pol2cart(theta, r):
 
 #fixed angle
 def rndWalk():
-    global edge, radii, degrees, position
+    global edge, radii, degrees, position, ravin
     turnTheta = 90*math.pi/180
-    if edge == False:
-        x,y = pol2cart(turnTheta,radii)
+    if ravin == True:
+        z,y = pol2cart(turnTheta,radii)
+        ravin = False
     else:
         degrees = degrees + 33
         turnTheta = degrees * math.pi /180
-        x,y = pol2cart(turnTheta,radii)
+        z,y = pol2cart(turnTheta,radii)
         edge = False
-    x += position[0]
+    z += position[2]
     y += position[1]
-    return x,y,position[2]
+    return position[0],y,z
 
 #rng Turn
 def rndWalkRngTurn():
-    global theta, edge, rngTime, position
+    global theta, edge, rngTime, position, ravin
     radii = 2#10
     degrees  = 0
     turnTheta = 0
-    x,y = 0, 0
+    z,y = 0, 0
     now = time.time()
     elapsed = now - rngTime
-    if edge == True and elapsed >  60:
+    if (edge == True and elapsed >  60) or ravin == True:
         degrees = degrees + random.randint(1,40)
         turnTheta = degrees * math.pi /180
-        x,y = pol2cart(turnTheta,radii)
+        z,y = pol2cart(turnTheta,radii)
         edge = False
         rngTime = time.time()
+        ravin = False
+        
+
     else:
-        x,y = pol2cart(turnTheta,radii)
-    x += position[0]
+        z,y = pol2cart(turnTheta,radii)
+    z += position[2]
     y += position[1]
-    return x,y,position[2]
+    return position[0],y,z
     
 def reseting():
 	x,y,z = rndWalkRngTurn()
@@ -153,6 +162,7 @@ def mainGlobalPlan():
     rospy.Subscriber("reachEdge", Bool, vistedEgde)
     rospy.Subscriber("path",Quaternion,vistedPointCB)
     rospy.Subscriber("reset",Bool,resetCallback)
+    rospy.Subscriber("ravin",Bool,ravinCallback)
     finish_pub = rospy.Publisher("finish",Bool,queue_size=2)
     reset_pub = rospy.Publisher("reset",Bool,queue_size=2)
     
@@ -186,7 +196,7 @@ def mainGlobalPlan():
         data = False
         navigationFunc = True
         if t - counter >= 10:
-            rospy.loginfo(counter)
+            #rospy.loginfo(counter)
             if data == True:
 	            csv_file = refListPath + "refList1.csv"
 	            with open(csv_file, 'wb') as csv_file:
